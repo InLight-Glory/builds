@@ -38,20 +38,21 @@ By keeping these documents in one place, we aim to improve collaboration, mainta
 
 The repository is organized by project. Each project has its own directory, which contains all the relevant documentation for that specific project.
 
-.
-├── Project_A/
-|   - BluePrint/
-│       - briefs/
-│       - designs/
-│       - diagrams/
-│       - phases/
-│       - planning/
-│       - requirements/
-│       - specifications/
-├── Project_B/
-│    - BluePrint/ ...
-└── Project_C/
-├    - BluePrint/ ...
+Project_A/
+- BluePrint/
+- - briefs/
+- - designs/
+- - diagrams/
+- - phases/
+- - planning/
+- - requirements/
+- - specifications/
+
+Project_B/
+- BluePrint/ ...
+  
+Project_C/
+- BluePrint/ ...
 
 
 Please maintain this structure to keep our documentation organized and easy to find.
