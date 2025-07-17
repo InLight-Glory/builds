@@ -1,6 +1,6 @@
 # Antidote
 
-![Antidote Banner](https://via.placeholder.com/1280x300.png?text=Antidote)
+![Antidote Banner](https://github.com/InLight-Glory/builds/blob/main/antidote/assets/exBanner.png?text=Antidote)
 
 ---
 
