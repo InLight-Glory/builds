@@ -40,17 +40,18 @@ The repository is organized by project. Each project has its own directory, whic
 
 .
 ├── Project_A/
-│   ├── briefs/
-│   ├── designs/
-│   ├── diagrams/
-│   ├── phases/
-│   ├── planning/
-│   ├── requirements/
-│   └── specifications/
+|   - BluePrint/
+│       - briefs/
+│       - designs/
+│       - diagrams/
+│       - phases/
+│       - planning/
+│       - requirements/
+│       - specifications/
 ├── Project_B/
-│   ├── ...
+│    - BluePrint/ ...
 └── Project_C/
-├── ...
+├    - BluePrint/ ...
 
 
 Please maintain this structure to keep our documentation organized and easy to find.
