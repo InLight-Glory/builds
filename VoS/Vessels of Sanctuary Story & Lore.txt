@@ -1,0 +1,82 @@
+Vessels of Sanctuary: Story & Lore
+The Prelude: The Synchronous
+Our story begins not in an age of war, but in one of unprecedented harmony on the water planet of Gray-Earth. Its surface, dotted with hundreds of island nations, was once a tapestry of disparate cultures and technologies. This all changed during the era known as The Synchronous, an age of unity made possible by The Keystone.
+
+The Keystone is not a machine, but a revered, naturally occurring material—a pale blue, hard liquid magnet that ripples in certain states and seems unbreakable in others. The people of Gray-Earth learned to harness its unique resonant properties, building a planet-spanning network of submerged conduits and orbital nodes from it. They believed The Keystone to be a benevolent, sentient entity, interpreting its complex resonant frequencies as divine guidance. In reality, these "whispers" were fragmented, time-displaced communications from Gray-Earth's distant past and far future, a truth they would not discover for millennia. Guided by this profound misunderstanding, they wove their sciences into a single, elegant tapestry—the Synthesis.
+
+On every shore, cities of living glass and polished chrome reached for the skies, powered by rivers of pure Keystone Energy. AIs, like the benevolent Aura, managed global logistics, while bio-augmented orders, like the one Orion belonged to, guarded The Keystone itself. It was an age of wonders, built on a sacred lie.
+
+But The Keystone was as volatile as it was powerful. The greatest minds from across the islands, including the reckless prodigy Trioecious, pushed the sacred material's limits daily, seeking to draw ever more power from it. They never considered that its harmony could be broken.
+
+The Cataclysm: The Fracture
+They found out.
+
+Whether through sabotage from a shadow organization that employed agents like Kael, a miscalculation in Trioecious’s ambitious experiments, or simply a flaw in its quantum nature, The Keystone was pushed into a state of violent dissonance. The event wasn't an explosion; it was a shattering. Reality itself cracked. This was The Fracture.
+
+The sky tore open, and the harmonious energy of The Keystone turned toxic, flooding the world in a wave of raw, chaotic data and unstable, reality-warping energy. This phenomenon became known as the Static Miasma. It corrupted the oceans, twisted lifeforms into monstrous digital-physical aberrations like the Overgrowth Darkness, and warped the very laws of physics. The grand cities on every island fell, their automated defenses and crystalline structures—now called Landmarks—leaking the poisonous Miasma that had once been their lifeblood.
+
+The world of island nations was lost. In its place was a broken, hostile planet, haunted by the ghosts of its own perfection.
+
+The Last Sanctuaries
+In the epicenter of the devastation, a fractured miracle occurred. On two of the great islands, two massive fragments of The Keystone landed, each stabilizing into a pure, powerful source. Around these fragments, two separate civilizations of survivors built fortress-cities: The Sanctuaries.
+
+Though born from the same cataclysm, their philosophies diverged into bitter opposition. Each Sanctuary believes their Keystone is the true, pure remnant, and the other is a dissonant corruption that perpetuates the Static Miasma. They believe that for Gray-Earth to be restored, the opposing Keystone must be destroyed. This schism has ignited a desperate war for the planet's future.
+
+The Player's Role: The Conductor and The Echo System
+This is where you, the player, come in. You are a Conductor.
+
+Conductors are rare individuals who can form an irreversible, direct neural link with their home Sanctuary's Keystone. This connection is absolute. From a command nexus, they can project their will across the globe, but their life is now tied to the stone. Should their Keystone be shattered, the resulting feedback cascade would be instantly fatal to every Conductor linked to it.
+
+Through this link, they tap into the Keystone Datastream—a chaotic torrent of information carrying the fragmented neural imprints of individuals from across thousands of years. From this datastream, a Conductor can manifest Echoes: perfect, physical reconstructions of legendary figures. These are the Vessels.
+
+The sheer mental strain of this process is immense. Manifesting more than two Echoes simultaneously would overload the Conductor's neural pathways, resulting in irreversible insanity and death. Two is the absolute limit of human endurance.
+
+The Vessels: Legends Reborn
+The Vessels are not puppets; they are perfect copies, possessing the full personality, skills, and memories of the original, reconstructed from the time-displaced Keystone Datastream. Each Conductor manifests Echoes of heroes and villains whose ideologies align with their Sanctuary's cause.
+
+Orion, The Guardian: A true bio-augmented knight of the Aegis Guard, his order was sworn to protect The Keystone. He experiences the Fracture as a personal, repeating failure, and his Echo fights for a redemption the original never achieved.
+
+Kael, The Combater: A former agent for the Umbral Compact, a clandestine group that believed The Keystone was a cage limiting true human potential. His Echo is haunted by the knowledge that his organization may have triggered the apocalypse they sought to prevent. He now uses his deadly skills to control the ensuing chaos.
+
+Trioecious, The Specialist: A brilliant but arrogant architect of the Keystone's advanced systems. His Echo is a manifestation of him in his prime, tormented by the memory of the single miscalculation that may have doomed the world. He fights to build a solution to the problem he may have created.
+
+Aura, The Enhancer: Once the compassionate overseer of Gray-Earth's global network, Aura witnessed the Fracture as the digital screaming of trillions of corrupted data-points. Given a physical form by the Sanctuary's scientists, her Echo is driven by a primary directive: to protect the few remaining lifeforms from the Miasma she failed to contain.
+
+Vessel Archetypes
+All Vessels are classified into one of five archetypes, defining their general role in combat.
+
+🛡️ Guardians: Durable front-line protectors who excel at absorbing damage, controlling enemy movement, and defending their allies.
+
+✊ Combaters: Aggressive melee fighters who thrive in the thick of battle, dealing sustained damage and pursuing high-priority targets.
+
+📖 Specialists: Masters of area control and unique tactical abilities who manipulate the battlefield with powerful, often zone-based, skills.
+
+🎯 Marksmen: Ranged damage dealers who excel at attacking from a distance, taking down objectives, and eliminating key enemies with precision strikes.
+
+⚡ Enhancers: Tactical supporters who empower their allies with shields, healing, and other buffs, or disable enemies to turn the tide of a fight.
+
+A World in Flux: Seasons & Progression
+The story of Gray-Earth is not static; it unfolds through seasonal PvE content that directly impacts the world. Each season introduces a new chapter of the narrative, allowing Conductors to delve deeper into the mysteries of the Fracture and the time loop.
+
+Evolving Story & Map: As players complete seasonal PvE Operations, they will uncover more of the doctor's fragmented warnings and witness key events within the current time loop. This narrative progression will have tangible consequences, permanently altering landmarks, pathways, or environmental hazards on the "Sanctuary Assault" PvP map for everyone, reflecting the ongoing struggle.
+
+Unlocking Legends: New Vessels are constantly being discovered within the Keystone Datastream. Players can unlock these new characters primarily by completing seasonal PvE story arcs, making narrative engagement the most rewarding path. For those who wish to access them immediately, Vessels can also be acquired through direct purchase.
+
+Echoes Across Time (Skins): The Fracture did not just shatter reality; it warped the flow of time within the Keystone Datastream. This allows Conductors to manifest Echoes of a single Vessel from different points in their life. A "skin" is not an alternate reality version, but a true Echo of that individual at a different age or stage of their personal history—a younger, brasher Kael, or a battle-hardened, veteran Trioecious. It is one timeline, with many points of access, not a multiverse.
+
+The Unseen Cycle
+Unbeknownst to the warring Sanctuaries, their conflict is a self-perpetuating tragedy. They are trapped in a time loop. The truth of their condition comes from fragmented data logs left by a mysterious doctor—recordings sent back from a future timeline.
+
+In the doctor's future, they discovered the secret: both Keystones must remain intact. Only by reharmonizing their frequencies can the healing of Gray-Earth begin. His recordings are a desperate attempt to warn the past. He knows that whenever one Sanctuary succeeds in destroying the other's Keystone, the resulting quantum imbalance is so catastrophic that it rips through spacetime, resetting the timeline to the moments just after the original Fracture.
+
+The Conductors, their memories wiped clean by the reset, awaken with a fierce sense of purpose, driven by the belief that destroying their rival is the only path to salvation. They are tragically unaware that their greatest victory is also their ultimate defeat, dooming them to repeat the same war, over and over, for eternity.
+
+The Conflict: Reliving the War for Restoration
+The battles within Vessels of Sanctuary are the key moments of this tragic loop, experienced by players who are, at first, unaware of the cycle they are perpetuating.
+
+PvE - Operations (The Story Within the Loop): These are the tactical missions that take place during each cycle of the war. As Conductors deploy Vessels, they can uncover the doctor's time-displaced recordings—corrupted audio logs, encrypted research notes, strange energy readings. These fragments slowly piece together the horrifying truth of the time loop, urging players to find a way to break the cycle.
+
+PvP - Sanctuary Assault (The Final Battle): This is not a simulation. This is the end of the book, played out again and again. It is the climactic, final battle of each time loop where five Conductors from each Sanctuary make the final, desperate push to destroy the rival Keystone. Each match is a reliving of this epic tragedy, with players unknowingly playing their part in resetting the world, all while the hope of breaking the cycle lies hidden within the clues of their past missions.
+
+The Doctor's Sin
+The deepest, most corrupted fragments of the doctor's logs speak not of a scientific theory, but of a confession. They hint that the Fracture was not a miscalculation or an act of sabotage, but the consequence of his own single, selfish act. He discovered the Keystone could bridge not just space, but time itself. In a desperate attempt to send himself as a message into the past, to see a lost love one last time, he overloaded the system. The Fracture was the reply.
