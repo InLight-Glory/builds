@@ -41,17 +41,62 @@ directionalLight.shadow.camera.top = 100;
 directionalLight.shadow.camera.bottom = -100;
 scene.add(directionalLight);
 
-// Ground Plane
+// --- MAP & SCENERY ---
 const mapSize = 250; // Significantly increase map size
+
+// Ground Plane with Texture
+const textureLoader = new THREE.TextureLoader();
+const groundTexture = textureLoader.load('https://threejs.org/examples/textures/terrain/grasslight-big.jpg');
+groundTexture.wrapS = THREE.RepeatWrapping;
+groundTexture.wrapT = THREE.RepeatWrapping;
+groundTexture.repeat.set(50, 50); // How many times the texture repeats
+
+const groundMaterial = new THREE.MeshStandardMaterial({ map: groundTexture });
 const groundGeometry = new THREE.PlaneGeometry(mapSize, mapSize);
-const groundMaterial = new THREE.MeshStandardMaterial({ color: 0x485460 });
 const ground = new THREE.Mesh(groundGeometry, groundMaterial);
 ground.rotation.x = -Math.PI / 2;
 ground.rotation.z = -Math.PI / 4; // Rotate to create the diamond shape
 ground.receiveShadow = true;
 scene.add(ground);
 
-// --- SCENERY ---
+// Boundary Walls
+const wallHeight = 5;
+const wallThickness = 1;
+const wallMaterial = new THREE.MeshStandardMaterial({ color: 0x3d3d3d });
+const boundarySize = mapSize / 2;
+
+const wallNorth = new THREE.Mesh(new THREE.BoxGeometry(mapSize, wallHeight, wallThickness), wallMaterial);
+wallNorth.position.set(0, wallHeight / 2, -boundarySize);
+scene.add(wallNorth);
+
+const wallSouth = new THREE.Mesh(new THREE.BoxGeometry(mapSize, wallHeight, wallThickness), wallMaterial);
+wallSouth.position.set(0, wallHeight / 2, boundarySize);
+scene.add(wallSouth);
+
+const wallEast = new THREE.Mesh(new THREE.BoxGeometry(wallThickness, wallHeight, mapSize), wallMaterial);
+wallEast.position.set(boundarySize, wallHeight / 2, 0);
+scene.add(wallEast);
+
+const wallWest = new THREE.Mesh(new THREE.BoxGeometry(wallThickness, wallHeight, mapSize), wallMaterial);
+wallWest.position.set(-boundarySize, wallHeight / 2, 0);
+scene.add(wallWest);
+
+// Keystone
+const keystoneGeometry = new THREE.IcosahedronGeometry(5, 1);
+const keystoneMaterial = new THREE.MeshStandardMaterial({
+    color: 0x0abde3,
+    emissive: 0x0abde3,
+    emissiveIntensity: 0.5,
+    transparent: true,
+    opacity: 0.8,
+});
+const keystone = new THREE.Mesh(keystoneGeometry, keystoneMaterial);
+// Position in the S.W. corner
+keystone.position.set(-boundarySize * 0.8, 5, boundarySize * 0.8);
+keystone.castShadow = true;
+scene.add(keystone);
+
+
 function createScenery() {
     const shrubGeometry = new THREE.IcosahedronGeometry(0.8, 0); // Use a more organic shape
     const shrubMaterial = new THREE.MeshStandardMaterial({ color: 0x27ae60, flatShading: true });
@@ -143,6 +188,11 @@ function animate() {
     requestAnimationFrame(animate);
 
     const deltaTime = clock.getDelta();
+    const elapsedTime = clock.getElapsedTime();
+
+    // Animate the keystone to give it a "rippling" effect
+    keystone.rotation.y += deltaTime * 0.2;
+    keystone.scale.setScalar(Math.sin(elapsedTime * 0.5) * 0.05 + 1);
 
     // Update game logic
     activeVessel.update(deltaTime, keysPressed, camera);
