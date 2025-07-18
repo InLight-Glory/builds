@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vessels of Sanctuary - Prototype</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #1a1a1a;
+        }
+        canvas {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <!-- The canvas element where the game will be rendered -->
+    <canvas id="game-canvas"></canvas>
+
+    <!-- Import Three.js library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    
+    <!-- Import our custom game scripts -->
+    <script src="vessels/Vessel.js"></script>
+    <script src="main.js"></script>
+</body>
+</html>
