@@ -14,6 +14,14 @@ const DEV_SPAWN_DISTANCE = 20.0;
 const MAP_CAMERA_HEIGHT = 150; // NEW: Height for map camera
 const MAP_VIEW_SIZE = 100; // NEW: How much area map camera sees
 
+// --- RESOURCE MANAGEMENT (Base-Wide) ---
+const baseResources = {
+    wood: 1000,
+    metal: 500
+    // ... other resources
+};
+
+
 // Day-Night Cycle Constants
 const DAY_DURATION_MINUTES = 24; // 24 minutes for a full day-night cycle
 const DAY_DURATION_SECONDS = DAY_DURATION_MINUTES * 60;
@@ -380,6 +388,90 @@ function animate() {
     if (debugControlsLockElement && window.controls) {
          debugControlsLockElement.textContent = window.controls.isLocked ? 'true' : 'false';
     }
+}
+
+
+// main.js
+
+// 1. IMPORT THE NEW CLASS at the top of the file
+import { Building } from './building.js';
+
+// 2. CREATE AN ARRAY TO HOLD ALL BUILDINGS near your other global variables
+const buildings = [];
+const interactionDistance = 10; // How close the player needs to be
+
+// Get a reference to the new dialog box elements
+const buildDialog = document.getElementById('build-dialog');
+const buildTitle = document.getElementById('build-title');
+const buildRequirements = document.getElementById('build-requirements');
+
+// 3. CREATE A PLACEHOLDER FUNCTION TO ADD BLUEPRINTS
+// This would be called from your RTS mode when the player places a building
+function placeBlueprint(position, type) {
+    const newBuilding = new Building(position, type);
+    scene.add(newBuilding.mesh);
+    buildings.push(newBuilding);
+}
+
+// For testing, let's place one when the game starts
+placeBlueprint(new THREE.Vector3(15, 0, 15), 'Barracks');
+
+
+// 4. ADD THE PROXIMITY CHECK LOGIC TO YOUR animate() FUNCTION
+function animate() {
+    requestAnimationFrame(animate);
+
+    const delta = clock.getDelta();
+    
+    // ... (keep all your existing animation code for player, enemies, etc.)
+
+    // --- BUILDING INTERACTION LOGIC ---
+    let canInteractWithBuilding = false;
+
+    if (player.controls.isLocked) { // Only check in First-Person Mode
+        for (const building of buildings) {
+            const distanceToPlayer = player.playerCollider.start.distanceTo(building.position);
+
+            if (distanceToPlayer < interactionDistance) {
+                canInteractWithBuilding = true;
+                buildDialog.style.display = 'block';
+
+                if (building.state === 'blueprint') {
+                    buildTitle.textContent = `${building.type} Blueprint`;
+                    
+                    // Display required resources
+                    const resources = building.requiredResources[building.type];
+                    let reqText = '<h4>Resources Needed:</h4>';
+                    // NOTE: This checks the PLAYER'S inventory. We'll discuss "Base Resources" below.
+                    for (const [resource, amount] of Object.entries(resources)) {
+                        const hasAmount = player[resource] || 0; // Check player's resources
+                        const color = hasAmount >= amount ? 'lightgreen' : 'salmon';
+                        reqText += `<p style="color: ${color};">${resource}: ${amount}</p>`;
+                    }
+                    buildRequirements.innerHTML = reqText;
+
+                    // Placeholder for construction logic (e.g., holding 'E')
+                    // if (player.isInteracting && hasEnoughResources) { building.buildProgress += delta * 10; }
+
+                } else if (building.state === 'complete') {
+                    buildTitle.textContent = building.type;
+                    buildRequirements.innerHTML = '<p>Press [E] to open production menu.</p>';
+                    // Future logic to open bot production menu
+                }
+                
+                break; // Stop checking once we find one building to interact with
+            }
+        }
+    }
+
+    if (!canInteractWithBuilding) {
+        buildDialog.style.display = 'none';
+    }
+    // --- END OF BUILDING LOGIC ---
+
+
+    renderer.render(scene, camera);
+    stats.update();
 }
 
 // --- START ---

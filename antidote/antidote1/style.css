@@ -64,3 +64,33 @@ body.pointer-lock-active {
     margin: 4px 2px;
     cursor: pointer;
 }
+
+.dialog-box {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 300px;
+    background-color: rgba(0, 0, 0, 0.8);
+    color: white;
+    border: 2px solid #4CAF50;
+    border-radius: 8px;
+    padding: 20px;
+    font-family: 'Courier New', Courier, monospace;
+    display: none; /* Hidden by default */
+    text-align: center;
+}
+
+#build-progress-bar-container {
+    width: 100%;
+    background-color: #555;
+    border-radius: 5px;
+    margin-top: 15px;
+}
+
+#build-progress-bar {
+    width: 0%; /* Starts empty */
+    height: 20px;
+    background-color: #4CAF50;
+    border-radius: 5px;
+}
