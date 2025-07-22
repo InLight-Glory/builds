@@ -1,7 +1,5 @@
 // building.js
 
-import * as THREE from 'three';
-
 class Building {
     constructor(position, type) {
         this.position = position.clone();

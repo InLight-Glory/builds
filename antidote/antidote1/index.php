@@ -49,17 +49,19 @@
             <button class="build-menu-button">Bots</button>
         </div>
     </div>
+
     <div id="build-dialog" class="dialog-box">
         <h3 id="build-title">Building Blueprint</h3>
         <div id="build-requirements">
             <p>Approach to build.</p>
-            </div>
+        </div>
         <div id="build-menu">
             </div>
         <div id="build-progress-bar-container">
             <div id="build-progress-bar"></div>
         </div>
     </div>
+
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/PointerLockControls.js"></script>
@@ -70,7 +72,7 @@
     <script src="curing_mechanic.js?v=<?php echo time(); ?>"></script>
     <script type="module" src="tree.js?v=<?php echo time(); ?>"></script>
     <script type="module" src="pickup.js?v=<?php echo time(); ?>"></script>
-    <script type="module" src="main.js?v=<?php echo time(); ?>"></script>
+    <script type="module" src="building.js?v=<?php echo time(); ?>"></script> <script type="module" src="main.js?v=<?php echo time(); ?>"></script>
 
 </body>
 </html>

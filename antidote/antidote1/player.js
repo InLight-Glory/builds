@@ -119,9 +119,30 @@ function initPlayer(_camera, _scene) {
                     }
                 }
             }
-        } else if (window.isMapViewActive) {
-             console.log("[PLAYER.JS] Click in Map View (TODO: Handle Map Clicks)");
-             // TODO: Add map interaction logic here (raycasting from map camera)
+        } else if (window.isMapViewActive && event.button === 0) { // Handle Left-Click in map view
+            if (typeof window.placeBlueprint !== 'function' || !window.mapCamera) {
+                console.error("Map click failed: placeBlueprint or mapCamera not available.");
+                return;
+            }
+
+            // 1. Get normalized device coordinates (-1 to +1)
+            const mouse = new THREE.Vector2();
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+            // 2. Set up raycaster from map camera
+            raycaster.setFromCamera(mouse, window.mapCamera);
+
+            // 3. Find intersection with the ground plane (Y=0)
+            const groundPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+            const intersectPoint = new THREE.Vector3();
+            raycaster.ray.intersectPlane(groundPlane, intersectPoint);
+
+            if (intersectPoint) {
+                console.log("Map clicked at world coordinates:", intersectPoint);
+                // For now, let's just place a 'Barracks'. A UI would be needed to select the type.
+                window.placeBlueprint(intersectPoint, 'Barracks');
+            }
         }
     });
 
