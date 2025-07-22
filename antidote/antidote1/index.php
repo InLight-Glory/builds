@@ -45,8 +45,9 @@
         </div>
 
         <div id="map-menu" style="position: absolute; bottom: 0; left: 0; width: 100%; background-color: rgba(0,0,0,0.8); color: white; padding: 10px; display: none; z-index: 100; text-align: center;">
-            <button class="build-menu-button">Base</button>
-            <button class="build-menu-button">Bots</button>
+            <button class="build-menu-button" data-type="Base">Base</button>
+            <button class="build-menu-button" data-type="Barracks">Barracks</button>
+            <button class="build-menu-button" data-type="Refinery">Refinery</button>
         </div>
     </div>
 

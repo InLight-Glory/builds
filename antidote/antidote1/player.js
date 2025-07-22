@@ -11,7 +11,8 @@ const PLAYER_SPEED = 5.0;
 const PLAYER_JUMP_VELOCITY = 7.0;
 const GRAVITY = -19.6;
 const SHOOT_DAMAGE = 25;
-const SPRINT_MULTIPLIER = 2.0; // New sprint multiplier
+const SPRINT_MULTIPLIER = 2.0;
+const INTERACTION_RANGE = 5.0; // Max distance to interact with buildings
 window.GRAVITY = GRAVITY;
 window.SHOOT_DAMAGE = SHOOT_DAMAGE;
 
@@ -25,8 +26,21 @@ let moveRight = false;
 let canJump = true;
 let eKeyPressed = false;
 let rightMouseDown = false;
-let isSprinting = false; // New sprint state variable
+let isSprinting = false;
 window.rightMouseDown = rightMouseDown;
+
+// Player inventory object
+const player = {
+    health: 100,
+    maxHealth: 100,
+    weight: 0,
+    maxWeight: 50,
+    ammo: 100,
+    maxAmmo: 100,
+    wood: 500, // Start with some wood for testing
+    metal: 200 // Start with some metal for testing
+};
+window.player = player; // Expose player object globally
 
 // --- CORE COMPONENTS ---
 let camera;
@@ -61,7 +75,6 @@ function initPlayer(_camera, _scene) {
     debugControlsLockElement = document.getElementById('debug-controls-locked');
 
     document.addEventListener('click', () => {
-        // Only lock if not in map view
         if (controls && !controls.isLocked && !window.isMapViewActive) {
              controls.lock();
         }
@@ -70,7 +83,6 @@ function initPlayer(_camera, _scene) {
     if (controls) {
         controls.addEventListener('lock', () => {
             if (typeof window.debugLog === 'function') window.debugLog('Controls Locked');
-            // Only add class if not in map view (though lock shouldn't happen then)
             if (!window.isMapViewActive) {
                 document.body.classList.add('pointer-lock-active');
             }
@@ -78,10 +90,9 @@ function initPlayer(_camera, _scene) {
         });
         controls.addEventListener('unlock', () => {
             if (typeof window.debugLog === 'function') window.debugLog('Controls Unlocked');
-            document.body.classList.remove('pointer-lock-active'); // Always remove on unlock
+            document.body.classList.remove('pointer-lock-active');
             if (debugControlsLockElement) debugControlsLockElement.textContent = 'false';
             if (rightMouseDown) {
-                console.log("[PLAYER.JS] Controls unlocked, forcing right mouse UP.");
                 rightMouseDown = false;
                 window.rightMouseDown = false;
                 if (typeof window.requestAntidoteStop === 'function') {
@@ -94,24 +105,18 @@ function initPlayer(_camera, _scene) {
     document.addEventListener('keyup', onKeyUp);
 
     document.addEventListener('mousedown', (event) => {
-        // Ensure not in map view before handling game clicks
         if (controls && controls.isLocked && !window.isMapViewActive) {
-            if (event.button === 0) {
+            if (event.button === 0) { // Left Click
                 if (typeof window.handleShoot === 'function') window.handleShoot();
-            } else if (event.button === 2) {
+            } else if (event.button === 2) { // Right Click
                 event.preventDefault();
-                console.log("[PLAYER.JS] Right MOUSE DOWN detected.");
                 rightMouseDown = true;
                 window.rightMouseDown = true;
                 raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
                 const intersects = raycaster.intersectObjects(window.objects, true);
                 for (const intersect of intersects) {
                     const hitObject = intersect.object;
-                    if (hitObject.userData && hitObject.userData.isSubdueRect &&
-                        hitObject.userData.parentGray && hitObject.userData.parentGray.userData &&
-                        hitObject.userData.parentGray.userData.isPatchPlaced)
-                    {
-                        console.log("[PLAYER.JS] Raycast HIT patch. Calling applyAntidotePulse.");
+                    if (hitObject.userData && hitObject.userData.isSubdueRect) {
                         if (typeof window.applyAntidotePulse === 'function') {
                             window.applyAntidotePulse(hitObject.userData.parentGray);
                         }
@@ -119,38 +124,12 @@ function initPlayer(_camera, _scene) {
                     }
                 }
             }
-        } else if (window.isMapViewActive && event.button === 0) { // Handle Left-Click in map view
-            if (typeof window.placeBlueprint !== 'function' || !window.mapCamera) {
-                console.error("Map click failed: placeBlueprint or mapCamera not available.");
-                return;
-            }
-
-            // 1. Get normalized device coordinates (-1 to +1)
-            const mouse = new THREE.Vector2();
-            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-
-            // 2. Set up raycaster from map camera
-            raycaster.setFromCamera(mouse, window.mapCamera);
-
-            // 3. Find intersection with the ground plane (Y=0)
-            const groundPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
-            const intersectPoint = new THREE.Vector3();
-            raycaster.ray.intersectPlane(groundPlane, intersectPoint);
-
-            if (intersectPoint) {
-                console.log("Map clicked at world coordinates:", intersectPoint);
-                // For now, let's just place a 'Barracks'. A UI would be needed to select the type.
-                window.placeBlueprint(intersectPoint, 'Barracks');
-            }
         }
     });
 
      document.addEventListener('mouseup', (event) => {
-        // Handle mouse up regardless of map view to ensure flags are reset
         if (event.button === 2) {
             event.preventDefault();
-            console.log("[PLAYER.JS] Right MOUSE UP detected.");
             if (rightMouseDown) {
                  rightMouseDown = false;
                  window.rightMouseDown = false;
@@ -162,33 +141,30 @@ function initPlayer(_camera, _scene) {
     });
 
     document.addEventListener('contextmenu', function(e) {
-        // Prevent context menu only if controls are locked (FPS mode)
         if (controls && controls.isLocked && !window.isMapViewActive) {
             e.preventDefault();
         }
     });
+
+    updateHUD(); // Initial HUD update
 }
 
 function onKeyDown(event) {
-    // NEW: Check for Map Toggle Key 'M'
     if (event.code === 'KeyM') {
         if (typeof window.toggleMapView === 'function') {
             window.toggleMapView();
         }
-        return; // Don't process other keys if toggling map
-    }
-
-    // NEW: If map is active, ignore movement keys
-    if (window.isMapViewActive) {
         return;
     }
+
+    if (window.isMapViewActive) return;
 
     switch (event.code) {
         case 'KeyW': moveForward = true; break;
         case 'KeyA': moveLeft = true; break;
         case 'KeyS': moveBackward = true; break;
         case 'KeyD': moveRight = true; break;
-        case 'ShiftLeft': isSprinting = true; break; // Handle Left Shift for sprinting
+        case 'ShiftLeft': isSprinting = true; break;
         case 'Space':
             if (canJump && playerOnGround) {
                 playerVelocity.y = PLAYER_JUMP_VELOCITY;
@@ -196,12 +172,22 @@ function onKeyDown(event) {
             }
             break;
         case 'KeyE':
-            if (!eKeyPressed && typeof window.requestPatchApplicationStart === 'function') {
-                window.requestPatchApplicationStart();
+            if (!eKeyPressed) {
+                let interactionTarget = findClosestInteractable();
+                if (interactionTarget && interactionTarget.mesh.userData.isBlueprint) {
+                    if (typeof interactionTarget.depositResources === 'function') {
+                        interactionTarget.depositResources(player);
+                        updateHUD();
+                    }
+                } else {
+                    if (typeof window.requestPatchApplicationStart === 'function') {
+                        window.requestPatchApplicationStart();
+                    }
+                }
             }
             eKeyPressed = true;
             break;
-        case 'Digit9': // Dev spawn key
+        case 'Digit9':
             if (window.enableDebugLogs && typeof window.devSpawnTheGrayNearPlayer === 'function') {
                 window.devSpawnTheGrayNearPlayer();
             }
@@ -210,13 +196,12 @@ function onKeyDown(event) {
 }
 
 function onKeyUp(event) {
-    // No need to check for map view here, setting false is always safe
     switch (event.code) {
         case 'KeyW': moveForward = false; break;
         case 'KeyA': moveLeft = false; break;
         case 'KeyS': moveBackward = false; break;
         case 'KeyD': moveRight = false; break;
-        case 'ShiftLeft': isSprinting = false; break; // Handle Left Shift for sprinting
+        case 'ShiftLeft': isSprinting = false; break;
         case 'KeyE':
             if (typeof window.requestPatchApplicationCancel === 'function') {
                 window.requestPatchApplicationCancel();
@@ -226,15 +211,31 @@ function onKeyUp(event) {
     }
 }
 
-// ... (getPlayerAABB, updatePlayer, handleShoot - NO CHANGES)
-function getPlayerAABB(position) {
-    if (!position || typeof position.x !== 'number' || typeof position.y !== 'number' || typeof position.z !== 'number' ||
-        isNaN(position.x) || isNaN(position.y) || isNaN(position.z)) {
-        console.error("getPlayerAABB received invalid position:", position);
-        return new THREE.Box3(new THREE.Vector3(0,0,0), new THREE.Vector3(0,0,0));
+function findClosestInteractable() {
+    if (!controls) return null;
+    const playerPosition = controls.getObject().position;
+    let closestObject = null;
+    let minDistanceSq = INTERACTION_RANGE * INTERACTION_RANGE;
+
+    if (window.buildings) {
+        for (const building of window.buildings) {
+            if (building.state === 'blueprint') {
+                const distanceSq = playerPosition.distanceToSquared(building.position);
+                if (distanceSq < minDistanceSq) {
+                    minDistanceSq = distanceSq;
+                    closestObject = building;
+                }
+            }
+        }
     }
-    if (typeof THREE === 'undefined' || typeof THREE.Box3 !== 'function' || typeof THREE.Vector3 !== 'function') {
-        console.error("THREE.Box3 or THREE.Vector3 is not available in getPlayerAABB!");
+    if (closestObject) return closestObject;
+
+    return null;
+}
+
+function getPlayerAABB(position) {
+    if (!position || isNaN(position.x) || isNaN(position.y) || isNaN(position.z)) {
+        console.error("getPlayerAABB received invalid position:", position);
         return new THREE.Box3(new THREE.Vector3(0,0,0), new THREE.Vector3(0,0,0));
     }
     return new THREE.Box3(
@@ -244,67 +245,73 @@ function getPlayerAABB(position) {
 }
 
 function updatePlayer(delta) {
-    // This function is now only called when controls are locked and map isn't active
     if (!controls || !camera || !objects) return;
-
     const playerObject = controls.getObject();
-    if (!playerObject) { console.error("updatePlayer: playerObject (controls.getObject()) is null."); return;}
+    if (!playerObject) return;
     const playerPosition = playerObject.position;
-    if (!playerPosition) { console.error("updatePlayer: playerPosition is null."); return;}
-
+    if (!playerPosition) return;
     if (!playerOnGround) playerVelocity.y += GRAVITY * delta;
 
+    // --- MOVEMENT CALCULATION ---
     const cameraForward = new THREE.Vector3();
     const cameraRight = new THREE.Vector3();
     playerObject.getWorldDirection(cameraForward);
-    cameraForward.y = 0; cameraForward.normalize();
-    cameraRight.crossVectors(playerObject.up, cameraForward).normalize();
+    cameraForward.y = 0;
+    cameraForward.normalize();
+    // FIX: Correct right vector calculation
+    cameraRight.crossVectors(cameraForward, playerObject.up).normalize();
 
-    let inputForward = 0; let inputRight = 0;
-    if (moveForward) inputForward += 1; if (moveBackward) inputForward -= 1;
-    if (moveLeft) inputRight -= 1; if (moveRight) inputRight += 1;
+    let inputForward = 0;
+    let inputRight = 0;
+    if (moveForward) inputForward += 1;
+    if (moveBackward) inputForward -= 1;
+    if (moveLeft) inputRight -= 1;
+    if (moveRight) inputRight += 1;
 
     const currentSpeed = isSprinting ? PLAYER_SPEED * SPRINT_MULTIPLIER : PLAYER_SPEED;
-
-    const targetDx = (cameraForward.x * inputForward * currentSpeed - cameraRight.x * inputRight * currentSpeed) * delta;
-    const targetDz = (cameraForward.z * inputForward * currentSpeed - cameraRight.z * inputRight * currentSpeed) * delta;
+    
+    // Use corrected cameraRight
+    const targetDx = (cameraForward.x * inputForward + cameraRight.x * inputRight) * currentSpeed * delta;
+    const targetDz = (cameraForward.z * inputForward + cameraRight.z * inputRight) * currentSpeed * delta;
     const targetDy = playerVelocity.y * delta;
 
+    // --- COLLISION DETECTION ---
     playerPosition.x += targetDx;
     let playerAABB = getPlayerAABB(playerPosition);
-    if (typeof playerAABB === 'undefined') { console.error("playerAABB is undefined after getPlayerAABB (X-axis)!"); return; }
     for (const object of objects) {
-        if (!object) { console.warn("Skipping null/undefined object in X-collision"); continue; }
-        if (object.userData && object.userData.isTheGray) continue;
+        if (!object || (object.userData && (object.userData.isTheGray || object.userData.isPickup))) continue;
         const objectAABB = new THREE.Box3().setFromObject(object);
-        if (playerAABB.intersectsBox(objectAABB)) { playerPosition.x -= targetDx; break; }
+        if (playerAABB.intersectsBox(objectAABB)) {
+            playerPosition.x -= targetDx;
+            break;
+        }
     }
 
     playerPosition.z += targetDz;
     playerAABB = getPlayerAABB(playerPosition);
-    if (typeof playerAABB === 'undefined') { console.error("playerAABB is undefined after getPlayerAABB (Z-axis)!"); return; }
     for (const object of objects) {
-        if (!object) { console.warn("Skipping null/undefined object in Z-collision"); continue; }
-        if (object.userData && object.userData.isTheGray) continue;
+        if (!object || (object.userData && (object.userData.isTheGray || object.userData.isPickup))) continue;
         const objectAABB = new THREE.Box3().setFromObject(object);
-        if (playerAABB.intersectsBox(objectAABB)) { playerPosition.z -= targetDz; break; }
+        if (playerAABB.intersectsBox(objectAABB)) {
+            playerPosition.z -= targetDz;
+            break;
+        }
     }
 
+    // --- VERTICAL COLLISION & GRAVITY ---
     playerOnGround = false;
     playerPosition.y += targetDy;
     playerAABB = getPlayerAABB(playerPosition);
-    if (typeof playerAABB === 'undefined') { console.error("playerAABB is undefined after getPlayerAABB (Y-axis initial)!"); return; }
+
     if (playerAABB.min.y < 0) {
         playerPosition.y -= playerAABB.min.y;
         if (playerVelocity.y < 0) playerVelocity.y = 0;
         playerOnGround = true;
     }
+    
     playerAABB = getPlayerAABB(playerPosition);
-    if (typeof playerAABB === 'undefined') { console.error("playerAABB is undefined after ground collision getPlayerAABB (Y-axis)!"); return; }
-
     for (const object of objects) {
-        if (!object) { console.warn("Skipping null/undefined object in Y-collision"); continue; }
-        if (object.userData && object.userData.isTheGray) continue;
+        if (!object || (object.userData && (object.userData.isTheGray || object.userData.isPickup))) continue;
         const objectAABB = new THREE.Box3().setFromObject(object);
         if (playerAABB.intersectsBox(objectAABB)) {
             if (targetDy < 0 && playerAABB.min.y >= objectAABB.max.y - 0.1) {
@@ -316,187 +323,70 @@ function updatePlayer(delta) {
                 if (playerVelocity.y > 0) playerVelocity.y = 0;
             }
             playerAABB = getPlayerAABB(playerPosition);
-            if (typeof playerAABB === 'undefined') { console.error("playerAABB is undefined after object collision getPlayerAABB (Y-axis)!"); return; }
             break;
         }
     }
     canJump = playerOnGround;
 }
 
+
 function handleShoot() {
     if (!window.controls || !window.camera || !window.objects) return;
-    console.log('handleShoot() - Fired!');
     raycaster.setFromCamera(new THREE.Vector2(0, 0), window.camera);
     const intersects = raycaster.intersectObjects(window.objects, true);
-    console.log("Raycast intersects:", intersects);
     if (intersects.length > 0) {
         const firstHit = intersects[0];
-        console.log("First hit object:", firstHit.object);
-        let targetObject = firstHit.object;
-
-        // Traverse up the hierarchy to find the main tree group
+        let hitObject = firstHit.object;
         let treeGroup = null;
-        while (targetObject) {
-            if (targetObject.userData && targetObject.userData.isTree) {
-                treeGroup = targetObject;
+        let currentTarget = hitObject;
+        while (currentTarget) {
+            if (currentTarget.userData && currentTarget.userData.isTree) {
+                treeGroup = currentTarget;
                 break;
             }
-            targetObject = targetObject.parent;
+            currentTarget = currentTarget.parent;
         }
-
-        if (treeGroup) { // If a tree group was found
-            console.log("Hit is a tree! Calling shrinkTree.");
-            console.log("Tree userData:", treeGroup.userData);
+        if (treeGroup) {
             shrinkTree(treeGroup);
-            return; // Stop further processing if it's a tree
+            return;
         }
         if (typeof hitObject.takeDamage === 'function') {
             hitObject.takeDamage(window.SHOOT_DAMAGE || 25, 'player');
         } else if (hitObject.parent && typeof hitObject.parent.takeDamage === 'function') {
             hitObject.parent.takeDamage(window.SHOOT_DAMAGE || 25, 'player');
-        } else if (hitObject.userData && typeof hitObject.userData.takeDamage === 'function') {
-            hitObject.userData.takeDamage(window.SHOOT_DAMAGE || 25, 'player');
-        } else if (hitObject.userData && typeof hitObject.userData.health === 'number') {
-            if (window.Collisions && typeof window.Collisions.damageBlock === 'function') {
-                window.Collisions.damageBlock(hitObject, window.SHOOT_DAMAGE || 25);
-            } else {
-                hitObject.userData.health -= (window.SHOOT_DAMAGE || 25);
-                if (hitObject.material && hitObject.userData.originalColor) {
-                    const healthPercent = Math.max(0, hitObject.userData.health / hitObject.userData.maxHealth);
-                    hitObject.material.color.copy(hitObject.userData.originalColor).lerp(new THREE.Color(1, 0, 0), 1 - healthPercent);
-                }
-                if (hitObject.userData.health <= 0) {
-                    if (hitObject.parent) hitObject.parent.remove(hitObject);
-                    if (hitObject.geometry) hitObject.geometry.dispose();
-                    if (hitObject.material) hitObject.material.dispose();
-                }
-            }
         }
     }
 }
-window.initPlayer = initPlayer;
-window.updatePlayer = updatePlayer;
-window.handleShoot = handleShoot;
 
-// Function to check for collisions with pickup items
 function checkPickupCollisions() {
-    console.log("checkPickupCollisions entered.");
-    console.log("Current window.objects:", window.objects);
     if (!controls || !window.objects) return;
-
     const playerCollider = getPlayerAABB(controls.getObject().position);
-    console.log("Player Collider:", playerCollider.min, playerCollider.max);
-
     for (let i = window.objects.length - 1; i >= 0; i--) {
         const object = window.objects[i];
-        console.log("Checking object:", object.name, "userData:", object.userData);
         if (object.userData && object.userData.isPickup) {
-            console.log("Found pickup object:", object.name);
             const pickupCollider = new THREE.Box3().setFromObject(object);
-            pickupCollider.expandByScalar(1.0); // Expand by 1.0 units in all directions (more reasonable)
-            console.log("Pickup Collider (expanded):", pickupCollider.min, pickupCollider.max);
-            console.log("Intersection result:", playerCollider.intersectsBox(pickupCollider));
             if (playerCollider.intersectsBox(pickupCollider)) {
-                console.log("Collision detected! Calling collectPickup.");
                 collectPickup(object);
+                updateHUD();
             }
         }
     }
 }
-window.checkPickupCollisions = checkPickupCollisions;
 
-// Player Stats (Placeholder - to be integrated with actual game logic)
-let playerHealth = 100;
-let playerMaxHealth = 100;
-let playerWeight = 0;
-let playerMaxWeight = 50;
-let playerAmmo = 100;
-let playerMaxAmmo = 100;
-let playerWood = 0;
-let playerMaxWood = 9999; // Arbitrary large number for now
-
-// Functions to update player stats (called by other game logic)
-function setPlayerHealth(value) {
-    playerHealth = Math.max(0, Math.min(value, playerMaxHealth));
-    updateHUD(); // Update HUD
-}
-
-function addPlayerHealth(value) {
-    setPlayerHealth(playerHealth + value);
-}
-
-function removePlayerHealth(value) {
-    setPlayerHealth(playerHealth - value);
-}
-
-function setPlayerWeight(value) {
-    playerWeight = Math.max(0, Math.min(value, playerMaxWeight));
-    updateHUD(); // Update HUD
-}
-
-function addPlayerWeight(value) {
-    setPlayerWeight(playerWeight + value);
-}
-
-function removePlayerWeight(value) {
-    setPlayerWeight(playerWeight - value);
-}
-
-function setPlayerAmmo(value) {
-    playerAmmo = Math.max(0, Math.min(value, playerMaxAmmo));
-    updateHUD(); // Update HUD
-}
-
-function addPlayerAmmo(value) {
-    setPlayerAmmo(playerAmmo + value);
-}
-
-function removePlayerAmmo(value) {
-    setPlayerAmmo(playerAmmo - value);
-}
-
-function addPlayerWood(value) {
-    console.log(`addPlayerWood called with value: ${value}`);
-    console.log(`playerWood before: ${playerWood}`);
-    playerWood = Math.max(0, Math.min(playerWood + value, playerMaxWood));
-    console.log(`playerWood after: ${playerWood}`);
-    updateHUD();
-}
-
-// Add this function to be accessible from other modules
-window.addPlayerWood = addPlayerWood;
-
-// HUD Update Function
 function updateHUD() {
-    console.log("updateHUD called.");
     const healthElement = document.getElementById('hud-health');
     const weightElement = document.getElementById('hud-weight');
     const ammoElement = document.getElementById('hud-ammo');
     const woodElement = document.getElementById('hud-wood');
-
-    console.log("woodElement:", woodElement);
-    console.log("playerWood value for HUD:", playerWood);
-
-    if (healthElement) {
-        healthElement.textContent = `${playerHealth}/${playerMaxHealth}`;
-    }
-    if (weightElement) {
-        weightElement.textContent = `${playerWeight}/${playerMaxWeight}`;
-    }
-    if (ammoElement) {
-        ammoElement.textContent = `${playerAmmo}/${playerMaxAmmo}`;
-    }
-    if (woodElement) {
-        woodElement.textContent = `${playerWood}`;
-    }
+    const metalElement = document.getElementById('hud-metal'); // Assuming you add a metal display
+    if (healthElement) healthElement.textContent = `${player.health}/${player.maxHealth}`;
+    if (weightElement) weightElement.textContent = `${player.weight}/${player.maxWeight}`;
+    if (ammoElement) ammoElement.textContent = `${player.ammo}/${player.maxAmmo}`;
+    if (woodElement) woodElement.textContent = `${player.wood}`;
+    if (metalElement) metalElement.textContent = `${player.metal}`;
 }
 
-// Export current stats (read-only for other modules)
-Object.defineProperty(window, 'playerHealth', { get: () => playerHealth });
-Object.defineProperty(window, 'playerMaxHealth', { get: () => playerMaxHealth });
-Object.defineProperty(window, 'playerWeight', { get: () => playerWeight });
-Object.defineProperty(window, 'playerMaxWeight', { get: () => playerMaxWeight });
-Object.defineProperty(window, 'playerAmmo', { get: () => playerAmmo });
-Object.defineProperty(window, 'playerMaxAmmo', { get: () => playerMaxAmmo });
-Object.defineProperty(window, 'playerWood', { get: () => playerWood });
-Object.defineProperty(window, 'playerMaxWood', { get: () => playerMaxWood });
+window.initPlayer = initPlayer;
+window.updatePlayer = updatePlayer;
+window.handleShoot = handleShoot;
+window.checkPickupCollisions = checkPickupCollisions;
