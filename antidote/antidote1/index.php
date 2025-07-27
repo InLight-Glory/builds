@@ -32,6 +32,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/PointerLockControls.js"></script>
 
+<<<<<<< HEAD
     <script src="player.js"></script>
     <script src="tree.js"></script>
     <script src="building.js"></script>
@@ -51,5 +52,15 @@
     <script src="Level1.js"></script>
     <!-- main.js must be last, as it uses all the other scripts. -->
     <script src="main.js"></script>
+=======
+    <script src="thegray.js?v=<?php echo time(); ?>"></script>
+    <script src="thegray-spawner.js?v=<?php echo time(); ?>"></script>
+    <script type="module" src="player.js?v=<?php echo time(); ?>"></script>
+    <script src="curing_mechanic.js?v=<?php echo time(); ?>"></script>
+    <script type="module" src="tree.js?v=<?php echo time(); ?>"></script>
+    <script type="module" src="pickup.js?v=<?php echo time(); ?>"></script>
+    <script type="module" src="building.js?v=<?php echo time(); ?>"></script> <script type="module" src="main.js?v=<?php echo time(); ?>"></script>
+
+>>>>>>> parent of 7d47982 (update attempt)
 </body>
 </html>
