@@ -1,9 +1,22 @@
-// Antidote - main.js - Orchestrator
-console.log("main.js: Script started");
+/**
+ * BlueprintManager.js
+ * Handles the RTS-style placement of building blueprints.
+ */
 
-import { createTree, updateTrees } from './tree.js';
-import { Building } from './building.js'; 
+const blueprintManager = (function() {
+    let activeBlueprintType = null;
+    let placementMesh = null; // The "ghost" building that follows the mouse
+    let placedBlueprints = []; // A list of all blueprints placed in the world
 
+<<<<<<< HEAD
+    const blueprintGeometries = {
+        'wall': new THREE.BoxGeometry(4, 2, 0.5)
+    };
+    const placementMaterial = new THREE.MeshStandardMaterial({
+        color: 0x00ff00,
+        opacity: 0.5,
+        transparent: true
+=======
 // --- CONFIGURABLE VARIABLES ---
 const CAMERA_FOV = 75;
 const CAMERA_NEAR_PLANE = 0.1;
@@ -99,90 +112,9 @@ function init() {
     document.addEventListener('mousedown', onDocumentMouseDown);
     setupBuildMenu();
     animate();
-
-        // Inside the init() function, at the end
-
-    // --- Initialize New Systems ---
-    uiManager.initialize();
-
-    // --- Connect UI to Systems ---
-    uiManager.onSaveClick(() => {
-        gatherSaveData(); // Collect all current data
-        persistenceManager.saveGame();
-        uiManager.showNotification("Game Saved!");
-    });
-
-    uiManager.onLoadClick(() => {
-        if (persistenceManager.loadGame()) {
-            // Apply the loaded state back to the game objects
-            player.health = GameState.player.health;
-            player.playerMesh.position.set(GameState.player.position.x, GameState.player.position.y, GameState.player.position.z);
-            // Here you would also need to respawn trees, buildings etc. based on GameState
-            uiManager.showNotification("Game Loaded!");
-            gameStateManager.changeState(GameStates.IN_GAME); // Resume game after loading
-        } else {
-            uiManager.showNotification("No save file found.", true);
-        }
-    });
-
-    uiManager.onResumeClick(() => {
-        gameStateManager.changeState(GameStates.IN_GAME);
-    });
-
-    // --- Game State Integration ---
-    window.addEventListener('keydown', (event) => {
-        if (event.key === 'Escape') {
-            if (gameStateManager.isState(GameStates.IN_GAME)) {
-                gameStateManager.changeState(GameStates.PAUSED);
-            } else if (gameStateManager.isState(GameStates.PAUSED)) {
-                gameStateManager.changeState(GameStates.IN_GAME);
-            }
-        }
-    });
-
-    gameStateManager.onStateChange((newState) => {
-        if (newState === GameStates.PAUSED) {
-            uiManager.showMenu();
-        } else if (newState === GameStates.IN_GAME) {
-            uiManager.hideMenu();
-        }
-    });
-
-    // Start the game
-    gameStateManager.changeState(GameStates.IN_GAME);
-    console.log("Game has started. Press 'Escape' to toggle the pause menu.");
-
 }
 
-// Function to populate the GameState object with the current game data
-function gatherSaveData() {
-    // Save player data
-    GameState.player = {
-        health: player.health,
-        position: {
-            x: player.playerMesh.position.x,
-            y: player.playerMesh.position.y,
-            z: player.playerMesh.position.z
-        },
-        // Add any other player data you want to save
-    };
-
-    // Save tree data (positions)
-    GameState.trees = trees.map(tree => ({
-        x: tree.position.x,
-        y: tree.position.y,
-        z: tree.position.z
-    }));
-
-    // Add other systems here. For example:
-    // GameState.buildings = buildings.map(b => ({ type: b.type, position: b.position }));
-    // GameState.horde = { wave: currentWave };
-
-    console.log("Data gathered for saving.");
-}
-
-
-// FUNCTION: Handles clicks in map mode to place blueprints
+// NEW FUNCTION: Handles clicks in map mode to place blueprints
 function onDocumentMouseDown(event) {
     if (isMapViewActive && event.button === 0 && selectedBlueprintType) {
         const mouse = new THREE.Vector2();
@@ -209,95 +141,41 @@ function setupBuildMenu() {
             button.style.borderColor = 'cyan';
             debugLog("Selected blueprint:", selectedBlueprintType);
         });
+>>>>>>> parent of 7d47982 (update attempt)
     });
-}
 
-// --- BLUEPRINT PLACEMENT ---
-function placeBlueprint(position, type) {
-    const newBuilding = new Building(position, type);
-    scene.add(newBuilding.mesh);
-    buildings.push(newBuilding);
-    objects.push(newBuilding.mesh);
-    debugLog(`Placed ${type} blueprint at`, position);
-}
-window.placeBlueprint = placeBlueprint;
-
-// --- VIEW TOGGLING ---
-function toggleMapView() {
-    isMapViewActive = !isMapViewActive;
-    window.isMapViewActive = isMapViewActive;
-    const mapMenu = document.getElementById('map-menu');
-    const crosshair = document.getElementById('crosshair');
-    if (isMapViewActive) {
-        activeCamera = mapCamera;
-        if (window.controls && window.controls.isLocked) window.controls.unlock();
-        if (mapMenu) mapMenu.style.display = 'block';
-        if (crosshair) crosshair.style.display = 'none';
-        document.body.classList.remove('pointer-lock-active');
-        debugLog("Switched to Map View");
-    } else {
-        activeCamera = camera;
-        if (mapMenu) mapMenu.style.display = 'none';
-        if (crosshair) crosshair.style.display = 'block';
-        selectedBlueprintType = null; // Clear selection when leaving map view
-        debugLog("Switched to First-Person View");
+    function initialize(scene) {
+        // Create the placement mesh but don't add it to the scene yet
+        placementMesh = new THREE.Mesh(new THREE.BoxGeometry(), placementMaterial);
+        placementMesh.visible = false;
+        scene.add(placementMesh);
     }
-}
-window.toggleMapView = toggleMapView;
+<<<<<<< HEAD
 
-// --- GAME GENERATION ---
-function generateTrees(count) {
-    // ... (no changes in this function)
-    const spawnRange = 200;
-    for (let i = 0; i < count; i++) {
-        const x = (Math.random() - 0.5) * spawnRange;
-        const z = (Math.random() - 0.5) * spawnRange;
-        const tree = createTree(new THREE.Vector3(x, 0, z));
-        scene.add(tree);
-        objects.push(tree);
-    }
-}
+    function setActiveBlueprint(type, scene) {
+        if (activeBlueprintType === type) {
+            // If clicking the same button, deactivate build mode
+            activeBlueprintType = null;
+            placementMesh.visible = false;
+            return null;
+        }
 
-// --- EVENT HANDLERS ---
-function onWindowResize() {
-    // ... (no changes in this function)
-    const aspect = window.innerWidth / window.innerHeight;
-    camera.aspect = aspect;
-    camera.updateProjectionMatrix();
-    mapCamera.left = -MAP_VIEW_SIZE * aspect / 2;
-    mapCamera.right = -MAP_VIEW_SIZE * aspect / 2;
-    mapCamera.top = MAP_VIEW_SIZE / 2;
-    mapCamera.bottom = -MAP_VIEW_SIZE / 2;
-    mapCamera.updateProjectionMatrix();
-    renderer.setSize(window.innerWidth, window.innerHeight);
-}
-
-// --- ANIMATION LOOP ---
-function animate() {
-    requestAnimationFrame(animate);
-    const delta = clock.getDelta();
-    
-    // --- System Updates ---
-    updateTrees(delta);
-    if (typeof window.updateTheGray === 'function') window.updateTheGray(delta);
-    if (typeof window.updateSpawner === 'function') window.updateSpawner(delta);
-    if (typeof window.updateCuringMechanic === 'function') window.updateCuringMechanic(delta);
-
-    const canUpdatePlayer = window.controls && window.controls.isLocked && !isMapViewActive;
-    if (canUpdatePlayer) {
-        if (typeof window.updatePlayer === 'function') window.updatePlayer(delta);
-        if (typeof window.checkPickupCollisions === 'function') window.checkPickupCollisions();
+        activeBlueprintType = type;
+        if (blueprintGeometries[type]) {
+            placementMesh.geometry.dispose(); // Clean up old geometry
+            placementMesh.geometry = blueprintGeometries[type];
+            placementMesh.visible = true;
+        }
+        return activeBlueprintType;
     }
 
-     // Add this 'if' statement
-    if (gameStateManager.isState(GameStates.IN_GAME)) {
-        // --- ALL YOUR EXISTING animate() CODE GOES IN HERE ---
-        const delta = clock.getDelta();
-        player.controls.update(delta);
-        theGraySpawner.update(scene, player.playerMesh.position);
-        checkCollisions();
-        // ... and so on for the rest of your animate function ...
-    }
+    function update(mouseWorldPosition) {
+        if (placementMesh && placementMesh.visible) {
+            // Snap to a grid (e.g., of size 1)
+            placementMesh.position.x = Math.round(mouseWorldPosition.x);
+            placementMesh.position.y = 1; // Set y-position based on building height
+            placementMesh.position.z = Math.round(mouseWorldPosition.z);
+=======
     
     // --- BUILDING INTERACTION LOGIC (Corrected and Simplified) ---
     let canInteractWithBuilding = false;
@@ -324,15 +202,56 @@ function animate() {
                     // Logic for interacting with completed buildings
                 }
             }
+>>>>>>> parent of 7d47982 (update attempt)
         }
     }
-    if (!canInteractWithBuilding && buildDialog.style.display !== 'none') {
-        buildDialog.style.display = 'none';
+
+    function placeBlueprint(scene) {
+        if (!activeBlueprintType) return;
+
+        // Create a new mesh for the placed blueprint
+        const blueprintMaterial = new THREE.MeshStandardMaterial({ color: 0x4a90e2, opacity: 0.6, transparent: true });
+        const newBlueprintMesh = new THREE.Mesh(blueprintGeometries[activeBlueprintType], blueprintMaterial);
+        newBlueprintMesh.position.copy(placementMesh.position);
+        
+        scene.add(newBlueprintMesh);
+        
+        const blueprintData = {
+            type: activeBlueprintType,
+            position: { x: newBlueprintMesh.position.x, y: newBlueprintMesh.position.y, z: newBlueprintMesh.position.z },
+            mesh: newBlueprintMesh // Keep a reference to the mesh
+        };
+        placedBlueprints.push(blueprintData);
+
+        console.log(`Placed blueprint: ${activeBlueprintType} at`, blueprintData.position);
     }
-    // --- END OF BUILDING LOGIC ---
+    
+    function getPlacedBlueprints() {
+        return placedBlueprints.map(bp => ({ type: bp.type, position: bp.position }));
+    }
+    
+    function recreateBlueprints(blueprintData, scene) {
+        // Clear existing blueprints
+        placedBlueprints.forEach(bp => scene.remove(bp.mesh));
+        placedBlueprints = [];
+        
+        blueprintData.forEach(data => {
+            const blueprintMaterial = new THREE.MeshStandardMaterial({ color: 0x4a90e2, opacity: 0.6, transparent: true });
+            const newBlueprintMesh = new THREE.Mesh(blueprintGeometries[data.type], blueprintMaterial);
+            newBlueprintMesh.position.set(data.position.x, data.position.y, data.position.z);
+            scene.add(newBlueprintMesh);
+            placedBlueprints.push({ ...data, mesh: newBlueprintMesh });
+        });
+    }
 
-    renderer.render(scene, activeCamera);
-}
 
-// --- START ---
-document.addEventListener('DOMContentLoaded', init);
+    // Public API
+    return {
+        initialize,
+        setActiveBlueprint,
+        update,
+        placeBlueprint,
+        getPlacedBlueprints,
+        recreateBlueprints
+    };
+})();
