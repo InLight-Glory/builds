@@ -1,11 +1,10 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Antidote - The Gray</title>
+    <title>Antidode - The Gray</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <!-- The UI Container holds all non-game UI elements -->
     <div id="ui-container">
         <div id="gear-icon" class="hidden">
             <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -14,7 +13,6 @@
             </svg>
         </div>
 
-        <!-- NEW: Build menu for RTS mode -->
         <div id="build-menu" class="hidden">
             <h4>Build</h4>
             <div class="build-item" data-building="wall">Wall</div>
@@ -27,40 +25,30 @@
             <button id="resume-button" class="menu-button">Resume</button>
         </div>
         <div id="notification"></div>
+        
+        <div id="hud" style="position: absolute; top: 20px; left: 20px; color: white; background-color: rgba(0,0,0,0.5); padding: 10px; border-radius: 5px;">
+            <div>Wood: <span id="hud-wood">0</span></div>
+            <div>Metal: <span id="hud-metal">0</span></div>
+        </div>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/PointerLockControls.js"></script>
 
-<<<<<<< HEAD
-    <script src="player.js"></script>
-    <script src="tree.js"></script>
-    <script src="building.js"></script>
     <script src="thegray.js"></script>
     <script src="thegray-spawner.js"></script>
-    <script src="collisions.js"></script>
-    <script src="pickup.js"></script>
     <script src="curing_mechanic.js"></script>
+    
+    <script src="src/managers/GameStateManager.js"></script>
+    <script src="src/managers/UIManager.js"></script>
+    <script src="src/managers/BlueprintManager.js"></script>
+    
+    <script type="module" src="player.js"></script>
+    <script type="module" src="tree.js"></script>
+    <script type="module" src="building.js"></script>
+    <script type="module" src="pickup.js"></script>
 
-    <!-- Add the new manager scripts here. The order is important. -->
-    <script src="core/GameState.js"></script>
-    <script src="managers/GameStateManager.js"></script>
-    <script src="managers/PersistenceManager.js"></script>
-    <script src="managers/UIManager.js"></script>
-    <script src="managers/BlueprintManager.js"></script> <!-- NEW -->
+    <script type="module" src="main.js"></script>
 
-    <script src="Level1.js"></script>
-    <!-- main.js must be last, as it uses all the other scripts. -->
-    <script src="main.js"></script>
-=======
-    <script src="thegray.js?v=<?php echo time(); ?>"></script>
-    <script src="thegray-spawner.js?v=<?php echo time(); ?>"></script>
-    <script type="module" src="player.js?v=<?php echo time(); ?>"></script>
-    <script src="curing_mechanic.js?v=<?php echo time(); ?>"></script>
-    <script type="module" src="tree.js?v=<?php echo time(); ?>"></script>
-    <script type="module" src="pickup.js?v=<?php echo time(); ?>"></script>
-    <script type="module" src="building.js?v=<?php echo time(); ?>"></script> <script type="module" src="main.js?v=<?php echo time(); ?>"></script>
-
->>>>>>> parent of 7d47982 (update attempt)
 </body>
 </html>
