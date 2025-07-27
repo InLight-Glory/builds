@@ -1,79 +1,54 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Antidote</title>
-    <link rel="stylesheet" href="style.css?v=<?php echo time(); ?>">
-    </head>
+    <title>Antidode - The Gray</title>
+    <link rel="stylesheet" href="style.css">
+</head>
 <body>
-    <div id="game-container"></div>
-
-    <div id="ui-overlay">
-        <div id="crosshair" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 10px; height: 10px; background-color: rgba(255,255,255,0.5); border-radius: 50%;"></div>
-
-        <div id="interaction-prompt" style="position: absolute; bottom: 20%; left: 50%; transform: translateX(-50%); color: white; font-size: 24px; text-shadow: 2px 2px 4px #000; display: none;">
-            {interaction_text}
+    <div id="ui-container">
+        <div id="gear-icon" class="hidden">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M19.4 15L19.4 9L17.4 10L16.6 8.6C16.1 7.8 15.2 7.3 14.3 7.3L12.5 7.3C11.6 7.3 10.7 7.8 10.2 8.6L9.4 10L7.4 9L7.4 15L9.4 14L10.2 15.4C10.7 16.2 11.6 16.7 12.5 16.7L14.3 16.7C15.2 16.7 16.1 16.2 16.6 15.4L17.4 14L19.4 15Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
         </div>
 
-        <div id="subdue-progress" style="position: absolute; top: 55%; left: 50%; transform: translateX(-50%); width: 200px; height: 20px; background-color: rgba(0,0,0,0.5); border: 1px solid white; display: none;">
-            <div id="subdue-bar" style="width: 0%; height: 100%; background-color: #006400;"></div>
+        <div id="build-menu" class="hidden">
+            <h4>Build</h4>
+            <div class="build-item" data-building="wall">Wall</div>
         </div>
 
-        <div id="antidote-minigame" style="position: absolute; bottom: 10%; left: 50%; transform: translateX(-50%); width: 300px; height: 80px; background-color: rgba(0,0,0,0.6); border: 2px solid #00FFFF; border-radius: 5px; display: none; padding: 5px;">
-            <div style="text-align: center; color: #00FFFF; margin-bottom: 5px; font-size: 14px;">Administer Antidote</div>
-            <div id="antidote-gauge-container" style="width: 100%; height: 20px; background-color: #333; border: 1px solid #555; position: relative; margin-bottom: 5px;">
-                <div id="antidote-sweet-spot" style="position: absolute; top: 0; height: 100%; background-color: rgba(0, 255, 0, 0.3);"></div>
-                <div id="antidote-overfill-zone" style="position: absolute; top: 0; height: 100%; background-color: rgba(255, 0, 0, 0.3);"></div> <div id="antidote-pressure-bar" style="position: absolute; top: 0; left: 0; width: 0%; height: 100%; background-color: #00FF00;"></div>
-                <div id="antidote-overfill-warning" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(255, 0, 0, 0.5); display: none;"></div>
-            </div>
-            <div id="antidote-timer-container" style="width: 100%; height: 15px; background-color: #222; border: 1px solid #444;">
-                <div id="antidote-timer-bar" style="width: 0%; height: 100%; background-color: #00FFFF;"></div>
-            </div>
-             <div id="antidote-feedback" style="text-align: center; color: #FFFF00; margin-top: 5px; font-size: 12px;">Aim & [Hold Right-Click] - Keep pressure in the green zone!</div>
+        <div id="pause-menu" class="hidden">
+            <h2>Paused</h2>
+            <button id="save-button" class="menu-button">Save Game</button>
+            <button id="load-button" class="menu-button">Load Game</button>
+            <button id="resume-button" class="menu-button">Resume</button>
         </div>
-        <div id="debug-panel" style="position: absolute; top: 10px; left: 10px; background-color: rgba(0,0,0,0.7); color: white; padding: 10px; border-radius: 5px; display: none;">
-            <p>Position: <span id="debug-position">X:0, Y:0, Z:0</span></p>
-            <p>Controls Locked: <span id="debug-controls-locked">false</span></p>
-            </div>
-
-        <div id="hud" style="position: absolute; bottom: 10px; left: 10px; background-color: rgba(0,0,0,0.7); color: white; padding: 10px; border-radius: 5px; font-family: monospace; font-size: 16px;">
-            <p>Health: <span id="hud-health">100/100</span></p>
-            <p>Weight: <span id="hud-weight">0/50</span></p>
-            <p>Ammo: <span id="hud-ammo">100/100</span></p>
-            <p>Wood: <span id="hud-wood">0</span></p>
-        </div>
-
-        <div id="map-menu" style="position: absolute; bottom: 0; left: 0; width: 100%; background-color: rgba(0,0,0,0.8); color: white; padding: 10px; display: none; z-index: 100; text-align: center;">
-            <button class="build-menu-button" data-type="Base">Base</button>
-            <button class="build-menu-button" data-type="Barracks">Barracks</button>
-            <button class="build-menu-button" data-type="Refinery">Refinery</button>
+        <div id="notification"></div>
+        
+        <div id="hud" style="position: absolute; top: 20px; left: 20px; color: white; background-color: rgba(0,0,0,0.5); padding: 10px; border-radius: 5px;">
+            <div>Wood: <span id="hud-wood">0</span></div>
+            <div>Metal: <span id="hud-metal">0</span></div>
         </div>
     </div>
-
-    <div id="build-dialog" class="dialog-box">
-        <h3 id="build-title">Building Blueprint</h3>
-        <div id="build-requirements">
-            <p>Approach to build.</p>
-        </div>
-        <div id="build-menu">
-            </div>
-        <div id="build-progress-bar-container">
-            <div id="build-progress-bar"></div>
-        </div>
-    </div>
-
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/PointerLockControls.js"></script>
 
-    <script src="thegray.js?v=<?php echo time(); ?>"></script>
-    <script src="thegray-spawner.js?v=<?php echo time(); ?>"></script>
-    <script type="module" src="player.js?v=<?php echo time(); ?>"></script>
-    <script src="curing_mechanic.js?v=<?php echo time(); ?>"></script>
-    <script type="module" src="tree.js?v=<?php echo time(); ?>"></script>
-    <script type="module" src="pickup.js?v=<?php echo time(); ?>"></script>
-    <script type="module" src="building.js?v=<?php echo time(); ?>"></script> <script type="module" src="main.js?v=<?php echo time(); ?>"></script>
+    <script src="thegray.js"></script>
+    <script src="thegray-spawner.js"></script>
+    <script src="curing_mechanic.js"></script>
+    
+    <script src="src/managers/GameStateManager.js"></script>
+    <script src="src/managers/UIManager.js"></script>
+    <script src="src/managers/BlueprintManager.js"></script>
+    
+    <script type="module" src="player.js"></script>
+    <script type="module" src="tree.js"></script>
+    <script type="module" src="building.js"></script>
+    <script type="module" src="pickup.js"></script>
+
+    <script type="module" src="main.js"></script>
 
 </body>
 </html>
