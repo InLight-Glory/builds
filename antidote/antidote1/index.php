@@ -73,7 +73,14 @@
     <script src="curing_mechanic.js?v=<?php echo time(); ?>"></script>
     <script type="module" src="tree.js?v=<?php echo time(); ?>"></script>
     <script type="module" src="pickup.js?v=<?php echo time(); ?>"></script>
-    <script type="module" src="building.js?v=<?php echo time(); ?>"></script> <script type="module" src="main.js?v=<?php echo time(); ?>"></script>
+    <script type="module" src="building.js?v=<?php echo time(); ?>">
 
+    <script src="core/GameState.js"></script>
+    <script src="managers/GameStateManager.js"></script>
+    <script src="managers/PersistenceManager.js"></script>
+    <script src="managers/UIManager.js"></script>
+
+    <script src="Level1.js"></script>
+    <script src="main.js"></script> <!-- main.js must be after the managers -->
 </body>
 </html>

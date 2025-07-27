@@ -99,9 +99,90 @@ function init() {
     document.addEventListener('mousedown', onDocumentMouseDown);
     setupBuildMenu();
     animate();
+
+        // Inside the init() function, at the end
+
+    // --- Initialize New Systems ---
+    uiManager.initialize();
+
+    // --- Connect UI to Systems ---
+    uiManager.onSaveClick(() => {
+        gatherSaveData(); // Collect all current data
+        persistenceManager.saveGame();
+        uiManager.showNotification("Game Saved!");
+    });
+
+    uiManager.onLoadClick(() => {
+        if (persistenceManager.loadGame()) {
+            // Apply the loaded state back to the game objects
+            player.health = GameState.player.health;
+            player.playerMesh.position.set(GameState.player.position.x, GameState.player.position.y, GameState.player.position.z);
+            // Here you would also need to respawn trees, buildings etc. based on GameState
+            uiManager.showNotification("Game Loaded!");
+            gameStateManager.changeState(GameStates.IN_GAME); // Resume game after loading
+        } else {
+            uiManager.showNotification("No save file found.", true);
+        }
+    });
+
+    uiManager.onResumeClick(() => {
+        gameStateManager.changeState(GameStates.IN_GAME);
+    });
+
+    // --- Game State Integration ---
+    window.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') {
+            if (gameStateManager.isState(GameStates.IN_GAME)) {
+                gameStateManager.changeState(GameStates.PAUSED);
+            } else if (gameStateManager.isState(GameStates.PAUSED)) {
+                gameStateManager.changeState(GameStates.IN_GAME);
+            }
+        }
+    });
+
+    gameStateManager.onStateChange((newState) => {
+        if (newState === GameStates.PAUSED) {
+            uiManager.showMenu();
+        } else if (newState === GameStates.IN_GAME) {
+            uiManager.hideMenu();
+        }
+    });
+
+    // Start the game
+    gameStateManager.changeState(GameStates.IN_GAME);
+    console.log("Game has started. Press 'Escape' to toggle the pause menu.");
+
 }
 
-// NEW FUNCTION: Handles clicks in map mode to place blueprints
+// Function to populate the GameState object with the current game data
+function gatherSaveData() {
+    // Save player data
+    GameState.player = {
+        health: player.health,
+        position: {
+            x: player.playerMesh.position.x,
+            y: player.playerMesh.position.y,
+            z: player.playerMesh.position.z
+        },
+        // Add any other player data you want to save
+    };
+
+    // Save tree data (positions)
+    GameState.trees = trees.map(tree => ({
+        x: tree.position.x,
+        y: tree.position.y,
+        z: tree.position.z
+    }));
+
+    // Add other systems here. For example:
+    // GameState.buildings = buildings.map(b => ({ type: b.type, position: b.position }));
+    // GameState.horde = { wave: currentWave };
+
+    console.log("Data gathered for saving.");
+}
+
+
+// FUNCTION: Handles clicks in map mode to place blueprints
 function onDocumentMouseDown(event) {
     if (isMapViewActive && event.button === 0 && selectedBlueprintType) {
         const mouse = new THREE.Vector2();
@@ -206,6 +287,16 @@ function animate() {
     if (canUpdatePlayer) {
         if (typeof window.updatePlayer === 'function') window.updatePlayer(delta);
         if (typeof window.checkPickupCollisions === 'function') window.checkPickupCollisions();
+    }
+
+     // Add this 'if' statement
+    if (gameStateManager.isState(GameStates.IN_GAME)) {
+        // --- ALL YOUR EXISTING animate() CODE GOES IN HERE ---
+        const delta = clock.getDelta();
+        player.controls.update(delta);
+        theGraySpawner.update(scene, player.playerMesh.position);
+        checkCollisions();
+        // ... and so on for the rest of your animate function ...
     }
     
     // --- BUILDING INTERACTION LOGIC (Corrected and Simplified) ---
