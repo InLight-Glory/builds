@@ -15,11 +15,13 @@ const uiManager = (function() {
         ui.loadButton = document.getElementById('load-button');
         ui.resumeButton = document.getElementById('resume-button');
         ui.notification = document.getElementById('notification');
+        ui.gearIcon = document.getElementById('gear-icon'); // NEW
 
         // Attach event listeners
         ui.saveButton.onclick = () => callbacks.save ? callbacks.save() : null;
         ui.loadButton.onclick = () => callbacks.load ? callbacks.load() : null;
         ui.resumeButton.onclick = () => callbacks.resume ? callbacks.resume() : null;
+        ui.gearIcon.onclick = () => callbacks.gear ? callbacks.gear() : null; // NEW
     }
 
     function showMenu() { ui.pauseMenu.classList.remove('hidden'); }
@@ -43,6 +45,7 @@ const uiManager = (function() {
         onSaveClick: (cb) => { callbacks.save = cb; },
         onLoadClick: (cb) => { callbacks.load = cb; },
         onResumeClick: (cb) => { callbacks.resume = cb; },
+        onGearIconClick: (cb) => { callbacks.gear = cb; }, // NEW
         showMenu,
         hideMenu,
         showNotification
