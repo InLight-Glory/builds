@@ -3,6 +3,7 @@ console.log("main.js: Script started");
 
 import { createTree, updateTrees } from './tree.js';
 import { Building } from './building.js'; 
+import { saveGameState, loadGameState } from './gamestate.js';
 
 // --- CONFIGURABLE VARIABLES ---
 const CAMERA_FOV = 75;
@@ -18,13 +19,13 @@ let scene, camera, renderer, clock, ambientLight, directionalLight;
 let mapCamera, activeCamera, raycaster;
 
 // --- GAME OBJECTS ---
-const objects = [];
-const buildings = []; 
+let objects = [];
+let buildings = []; 
 window.buildings = buildings; // Expose to player.js
 const interactionDistance = 10;
 
 // --- UI ELEMENTS ---
-let buildDialog, buildTitle, buildRequirements;
+let buildDialog, buildTitle, buildRequirements, saveLoadMenu;
 
 // --- GAME STATE ---
 let isMapViewActive = false;
@@ -85,23 +86,61 @@ function init() {
     buildDialog = document.getElementById('build-dialog');
     buildTitle = document.getElementById('build-title');
     buildRequirements = document.getElementById('build-requirements');
+    saveLoadMenu = document.getElementById('save-load-menu');
 
     // --- Player & Game Systems ---
     if (typeof window.initPlayer === 'function') window.initPlayer(camera, scene);
     if (typeof window.initCuringMechanic === 'function') window.initCuringMechanic();
     generateTrees(50);
     
-    // Test blueprint placement (optional, can be removed)
-    // placeBlueprint(new THREE.Vector3(15, 0, 15), 'Base');
-
     // --- Event Listeners ---
     window.addEventListener('resize', onWindowResize);
     document.addEventListener('mousedown', onDocumentMouseDown);
     setupBuildMenu();
+    setupGameMenu();
+
     animate();
 }
 
-// NEW FUNCTION: Handles clicks in map mode to place blueprints
+// --- MENU SETUP ---
+function setupGameMenu() {
+    const mapSettingsIcon = document.getElementById('map-settings-icon');
+    const saveButton = document.getElementById('save-game-button');
+    const loadButton = document.getElementById('load-game-button');
+    const closeMenuButton = document.getElementById('close-save-menu-button');
+
+    if (mapSettingsIcon) {
+        mapSettingsIcon.addEventListener('click', () => {
+            if (isMapViewActive) {
+                saveLoadMenu.style.display = 'block';
+            }
+        });
+    }
+    if (saveButton) {
+        saveButton.addEventListener('click', () => {
+            if (window.playerInstance) {
+                saveGameState(window.playerInstance, buildings);
+            } else {
+                console.error("Cannot save: Player instance not found.");
+            }
+        });
+    }
+    if (loadButton) {
+        loadButton.addEventListener('click', () => {
+            const gameState = loadGameState();
+            if (gameState) {
+                rebuildWorldFromState(gameState);
+            }
+        });
+    }
+    if (closeMenuButton) {
+        closeMenuButton.addEventListener('click', () => {
+            saveLoadMenu.style.display = 'none';
+        });
+    }
+}
+
+// Handles clicks in map mode to place blueprints
 function onDocumentMouseDown(event) {
     if (isMapViewActive && event.button === 0 && selectedBlueprintType) {
         const mouse = new THREE.Vector2();
@@ -118,12 +157,11 @@ function onDocumentMouseDown(event) {
     }
 }
 
-// NEW FUNCTION: Sets up listeners for the build menu buttons
+// Sets up listeners for the build menu buttons
 function setupBuildMenu() {
     document.querySelectorAll('.build-menu-button').forEach(button => {
         button.addEventListener('click', () => {
             selectedBlueprintType = button.dataset.type; // e.g., 'Base' or 'Barracks'
-            // Visual feedback for selection
             document.querySelectorAll('.build-menu-button').forEach(b => b.style.borderColor = 'white');
             button.style.borderColor = 'cyan';
             debugLog("Selected blueprint:", selectedBlueprintType);
@@ -131,7 +169,7 @@ function setupBuildMenu() {
     });
 }
 
-// --- BLUEPRINT PLACEMENT ---
+// --- BLUEPRINT & WORLD BUILDING ---
 function placeBlueprint(position, type) {
     const newBuilding = new Building(position, type);
     scene.add(newBuilding.mesh);
@@ -140,6 +178,45 @@ function placeBlueprint(position, type) {
     debugLog(`Placed ${type} blueprint at`, position);
 }
 window.placeBlueprint = placeBlueprint;
+
+function rebuildWorldFromState(gameState) {
+    // Clear existing dynamic objects (buildings, etc.)
+    buildings.forEach(building => scene.remove(building.mesh));
+    buildings.length = 0;
+    // (Future: clear other dynamic objects like NPCs, dropped items etc.)
+
+    // Repopulate buildings
+    gameState.buildings.forEach(buildingData => {
+        const position = new THREE.Vector3(buildingData.position.x, buildingData.position.y, buildingData.position.z);
+        const newBuilding = new Building(position, buildingData.type);
+        
+        newBuilding.state = buildingData.state;
+        newBuilding.depositedResources = { ...buildingData.depositedResources };
+        
+        // If complete, update appearance immediately
+        if (newBuilding.state === 'complete') {
+            newBuilding.finishConstruction(); 
+        } else {
+            newBuilding.updateAppearance();
+        }
+
+        scene.add(newBuilding.mesh);
+        buildings.push(newBuilding);
+        objects.push(newBuilding.mesh);
+    });
+
+    // Reposition Player
+    if (window.playerInstance && gameState.player) {
+        const playerObject = window.playerInstance.controls.getObject();
+        playerObject.position.set(gameState.player.position.x, gameState.player.position.y, gameState.player.position.z);
+        window.playerInstance.stats = { ...gameState.player.stats };
+        window.playerInstance.updateHUD();
+    }
+    
+    saveLoadMenu.style.display = 'none';
+    toggleMapView(); // Switch back to FPS view
+    debugLog("World rebuilt from saved state.");
+}
 
 // --- VIEW TOGGLING ---
 function toggleMapView() {
@@ -159,6 +236,7 @@ function toggleMapView() {
         if (mapMenu) mapMenu.style.display = 'none';
         if (crosshair) crosshair.style.display = 'block';
         selectedBlueprintType = null; // Clear selection when leaving map view
+        saveLoadMenu.style.display = 'none'; // Ensure save menu is hidden
         debugLog("Switched to First-Person View");
     }
 }
@@ -166,7 +244,6 @@ window.toggleMapView = toggleMapView;
 
 // --- GAME GENERATION ---
 function generateTrees(count) {
-    // ... (no changes in this function)
     const spawnRange = 200;
     for (let i = 0; i < count; i++) {
         const x = (Math.random() - 0.5) * spawnRange;
@@ -179,12 +256,11 @@ function generateTrees(count) {
 
 // --- EVENT HANDLERS ---
 function onWindowResize() {
-    // ... (no changes in this function)
     const aspect = window.innerWidth / window.innerHeight;
     camera.aspect = aspect;
     camera.updateProjectionMatrix();
     mapCamera.left = -MAP_VIEW_SIZE * aspect / 2;
-    mapCamera.right = -MAP_VIEW_SIZE * aspect / 2;
+    mapCamera.right = MAP_VIEW_SIZE * aspect / 2;
     mapCamera.top = MAP_VIEW_SIZE / 2;
     mapCamera.bottom = -MAP_VIEW_SIZE / 2;
     mapCamera.updateProjectionMatrix();
@@ -196,7 +272,6 @@ function animate() {
     requestAnimationFrame(animate);
     const delta = clock.getDelta();
     
-    // --- System Updates ---
     updateTrees(delta);
     if (typeof window.updateTheGray === 'function') window.updateTheGray(delta);
     if (typeof window.updateSpawner === 'function') window.updateSpawner(delta);
@@ -205,12 +280,10 @@ function animate() {
     const canUpdatePlayer = window.controls && window.controls.isLocked && !isMapViewActive;
     if (canUpdatePlayer) {
         if (typeof window.updatePlayer === 'function') window.updatePlayer(delta);
-        if (typeof window.checkPickupCollisions === 'function') window.checkPickupCollisions();
     }
     
-    // --- BUILDING INTERACTION LOGIC (Corrected and Simplified) ---
     let canInteractWithBuilding = false;
-    if (canUpdatePlayer && window.player) { 
+    if (canUpdatePlayer && window.playerInstance) { 
         const playerPosition = window.controls.getObject().position;
         for (const building of buildings) {
             const distanceToPlayer = playerPosition.distanceTo(building.position);
@@ -229,8 +302,6 @@ function animate() {
                     reqText += '<p style="color:cyan;">Press [E] to deposit resources.</p>';
                     buildRequirements.innerHTML = reqText;
                     break;
-                } else if (building.state === 'complete') {
-                    // Logic for interacting with completed buildings
                 }
             }
         }
@@ -238,7 +309,6 @@ function animate() {
     if (!canInteractWithBuilding && buildDialog.style.display !== 'none') {
         buildDialog.style.display = 'none';
     }
-    // --- END OF BUILDING LOGIC ---
 
     renderer.render(scene, activeCamera);
 }
