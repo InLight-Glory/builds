@@ -3,8 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vessels of Sanctuary - Prototype</title>
+    <title>Vessels of Sanctuary - Tech Demo</title>
     <style>
+        #title-container {
+            position: absolute;
+            top: 20px;
+            width: 100%;
+            text-align: center;
+            color: white;
+            font-family: sans-serif;
+            font-size: 36px;
+            text-shadow: 2px 2px 4px #000;
+            z-index: 100;
+        }
         body {
             margin: 0;
             overflow: hidden;
@@ -51,6 +62,8 @@
     </style>
 </head>
 <body>
+    <div id="title-container">Vessels of Sanctuary</div>
+
     <!-- The canvas element where the game will be rendered -->
     <canvas id="game-canvas"></canvas>
 
@@ -63,8 +76,7 @@
     <!-- Import Three.js library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     
-    <!-- Import our custom game scripts -->
-    <script src="vessels/Vessel.js"></script>
-    <script src="main.js"></script>
+    <!-- Import our custom game scripts as modules -->
+    <script type="module" src="main.js"></script>
 </body>
 </html>
