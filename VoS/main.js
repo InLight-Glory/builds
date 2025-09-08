@@ -1,8 +1,3 @@
-import { Vessel } from './vessels/Vessel.js';
-import { createMap, animateMap, mapSize } from './modules/map.js';
-import { initUI, updateCooldownUI, updateScore } from './modules/ui.js';
-import { createOrbs, animateOrbs, orbs, createOrbCollectionParticles } from './modules/collectibles.js';
-
 // --- SETUP ---
 
 // Key state manager
@@ -16,13 +11,13 @@ window.addEventListener('keyup', (event) => {
 
 // Scene
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x1e272e);
+scene.background = new THREE.Color(0x1e272e); // A darker, moodier background
 
 // Camera
 const aspect = window.innerWidth / window.innerHeight;
-const d = 25;
+const d = 25; // Zoom out a bit to see more of the larger map
 const camera = new THREE.OrthographicCamera(-d * aspect, d * aspect, d, -d, 1, 1000);
-const cameraOffset = new THREE.Vector3(25, 25, 25);
+const cameraOffset = new THREE.Vector3(25, 25, 25); // Increase camera offset for the larger view
 camera.position.copy(cameraOffset);
 camera.lookAt(scene.position);
 
@@ -36,9 +31,9 @@ const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
 scene.add(ambientLight);
 
 const directionalLight = new THREE.DirectionalLight(0xffffff, 0.7);
-directionalLight.position.set(50, 60, 25);
+directionalLight.position.set(50, 60, 25); // Adjust light position for the larger map
 directionalLight.castShadow = true;
-directionalLight.shadow.mapSize.width = 4096;
+directionalLight.shadow.mapSize.width = 4096; // Increase shadow map resolution for better quality
 directionalLight.shadow.mapSize.height = 4096;
 directionalLight.shadow.camera.left = -100;
 directionalLight.shadow.camera.right = 100;
@@ -46,40 +41,112 @@ directionalLight.shadow.camera.top = 100;
 directionalLight.shadow.camera.bottom = -100;
 scene.add(directionalLight);
 
-// --- INITIALIZE MODULES ---
-createMap(scene);
-initUI();
-createOrbs(scene, 20, mapSize);
+// --- MAP & SCENERY ---
+const mapSize = 250; // Significantly increase map size
+
+// Ground Plane with Texture
+const textureLoader = new THREE.TextureLoader();
+const groundTexture = textureLoader.load('https://threejs.org/examples/textures/terrain/grasslight-big.jpg');
+groundTexture.wrapS = THREE.RepeatWrapping;
+groundTexture.wrapT = THREE.RepeatWrapping;
+groundTexture.repeat.set(50, 50); // How many times the texture repeats
+
+const groundMaterial = new THREE.MeshStandardMaterial({ map: groundTexture });
+const groundGeometry = new THREE.PlaneGeometry(mapSize, mapSize);
+const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+ground.rotation.x = -Math.PI / 2;
+ground.rotation.z = -Math.PI / 4; // Rotate to create the diamond shape
+ground.receiveShadow = true;
+scene.add(ground);
+
+// Boundary Walls
+const wallHeight = 5;
+const wallThickness = 1;
+const wallMaterial = new THREE.MeshStandardMaterial({ color: 0x3d3d3d });
+const boundarySize = mapSize / 2;
+
+const wallNorth = new THREE.Mesh(new THREE.BoxGeometry(mapSize, wallHeight, wallThickness), wallMaterial);
+wallNorth.position.set(0, wallHeight / 2, -boundarySize);
+scene.add(wallNorth);
+
+const wallSouth = new THREE.Mesh(new THREE.BoxGeometry(mapSize, wallHeight, wallThickness), wallMaterial);
+wallSouth.position.set(0, wallHeight / 2, boundarySize);
+scene.add(wallSouth);
+
+const wallEast = new THREE.Mesh(new THREE.BoxGeometry(wallThickness, wallHeight, mapSize), wallMaterial);
+wallEast.position.set(boundarySize, wallHeight / 2, 0);
+scene.add(wallEast);
+
+const wallWest = new THREE.Mesh(new THREE.BoxGeometry(wallThickness, wallHeight, mapSize), wallMaterial);
+wallWest.position.set(-boundarySize, wallHeight / 2, 0);
+scene.add(wallWest);
+
+// Keystone
+const keystoneGeometry = new THREE.IcosahedronGeometry(5, 1);
+const keystoneMaterial = new THREE.MeshStandardMaterial({
+    color: 0x0abde3,
+    emissive: 0x0abde3,
+    emissiveIntensity: 0.5,
+    transparent: true,
+    opacity: 0.8,
+});
+const keystone = new THREE.Mesh(keystoneGeometry, keystoneMaterial);
+// Position in the S.W. corner
+keystone.position.set(-boundarySize * 0.8, 5, boundarySize * 0.8);
+keystone.castShadow = true;
+scene.add(keystone);
 
 
-// --- GAME LOGIC ---
+function createScenery() {
+    const shrubGeometry = new THREE.IcosahedronGeometry(0.8, 0); // Use a more organic shape
+    const shrubMaterial = new THREE.MeshStandardMaterial({ color: 0x27ae60, flatShading: true });
+
+    // We place shrubs inside a square area that fits within the rotated diamond plane
+    const placementArea = mapSize * 0.65;
+
+    for (let i = 0; i < 400; i++) { // Add more shrubs
+        const shrub = new THREE.Mesh(shrubGeometry, shrubMaterial);
+
+        // Randomly scale each shrub to make them look unique
+        shrub.scale.set(
+            Math.random() * 0.5 + 0.7,
+            Math.random() * 0.8 + 0.5,
+            Math.random() * 0.5 + 0.7
+        );
+
+        shrub.position.set(
+            (Math.random() - 0.5) * placementArea,
+            (shrub.scale.y * 0.8) / 2, // Adjust height based on scale
+            (Math.random() - 0.5) * placementArea
+        );
+
+        shrub.rotation.y = Math.random() * Math.PI; // Randomly rotate
+        shrub.castShadow = true;
+        scene.add(shrub);
+    }
+}
+createScenery();
+
+
+// --- GAME LOGIC & UI ---
 const clock = new THREE.Clock(); 
-let score = 0;
+
+// UI Elements
+const cooldownFill = document.getElementById('cooldown-fill');
+const cooldownText = document.getElementById('cooldown-text');
 
 // Create the player's Vessels
-const vessel1 = new Vessel(scene, {
-    type: 'marksman',
-    color: 0x0984e3,
-    size: 1.0,
-    speed: 10,
-    mapBounds: mapSize / 2
-});
-const vessel2 = new Vessel(scene, {
-    type: 'guardian',
-    color: 0xd63031,
-    size: 1.2,
-    speed: 7,
-    mapBounds: mapSize / 2
-});
+const vessel1 = new Vessel(scene, { color: 0x0984e3, size: 1.0, speed: 10, mapBounds: mapSize / 2 });
+const vessel2 = new Vessel(scene, { color: 0xd63031, size: 1.3, speed: 7, mapBounds: mapSize / 2 });
 
 // Swap mechanic variables
 let vessels = [vessel1, vessel2];
 let activeVesselIndex = 0;
 let activeVessel = vessels[activeVesselIndex];
-vessels[1].mesh.visible = false;
+vessels[1].mesh.visible = false; // Start with the second vessel hidden
 
-const swapCooldown = 5.0;
-let lastSwapTime = -swapCooldown;
+const swapCooldown = 5.0; // 5 seconds
+let lastSwapTime = -swapCooldown; // Allow swapping immediately at the start
 
 // Listen for the swap key press
 window.addEventListener('keydown', (event) => {
@@ -100,33 +167,18 @@ window.addEventListener('keydown', (event) => {
     }
 });
 
-/**
- * Checks for collisions between the active vessel and any collectible orbs.
- */
-function checkCollisions() {
-    // Create a bounding box for the active vessel for collision detection.
-    const vesselBox = new THREE.Box3().setFromObject(activeVessel.mesh);
-
-    // Iterate backwards through the orbs array so we can safely remove items.
-    for (let i = orbs.length - 1; i >= 0; i--) {
-        const orb = orbs[i];
-        const orbBox = new THREE.Box3().setFromObject(orb);
-
-        // Check if the vessel's bounding box intersects with the orb's bounding box.
-        if (vesselBox.intersectsBox(orbBox)) {
-            const orbPosition = orb.position.clone();
-
-            // If collision, remove the orb from the scene and the array.
-            scene.remove(orb);
-            orbs.splice(i, 1);
-
-            // Update the score and UI.
-            score++;
-            updateScore(score);
-
-            // Trigger a particle effect at the orb's last position.
-            createOrbCollectionParticles(scene, orbPosition);
-        }
+function updateCooldownUI() {
+    const now = clock.getElapsedTime();
+    const timeSinceSwap = now - lastSwapTime;
+    if (timeSinceSwap < swapCooldown) {
+        const progress = timeSinceSwap / swapCooldown;
+        const fillHeight = (1 - progress) * 100;
+        cooldownFill.style.transform = `translateY(${fillHeight}%)`;
+        const timeLeft = swapCooldown - timeSinceSwap;
+        cooldownText.textContent = timeLeft.toFixed(1);
+    } else {
+        cooldownFill.style.transform = 'translateY(100%)';
+        cooldownText.textContent = 'SHIFT';
     }
 }
 
@@ -138,20 +190,17 @@ function animate() {
     const deltaTime = clock.getDelta();
     const elapsedTime = clock.getElapsedTime();
 
-    // Animate modules
-    animateMap(deltaTime, elapsedTime);
-    animateOrbs(deltaTime);
+    // Animate the keystone to give it a "rippling" effect
+    keystone.rotation.y += deltaTime * 0.2;
+    keystone.scale.setScalar(Math.sin(elapsedTime * 0.5) * 0.05 + 1);
 
     // Update game logic
     activeVessel.update(deltaTime, keysPressed, camera);
-    checkCollisions();
-
-    // Update UI
-    updateCooldownUI(clock, lastSwapTime, swapCooldown);
+    updateCooldownUI();
 
     // Camera follows the active player
     const targetPosition = activeVessel.mesh.position.clone().add(cameraOffset);
-    camera.position.lerp(targetPosition, 0.1);
+    camera.position.lerp(targetPosition, 0.1); // Use lerp for smooth camera movement
     camera.lookAt(activeVessel.mesh.position);
 
     // Render the scene

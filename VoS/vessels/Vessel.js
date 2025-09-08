@@ -3,10 +3,10 @@
  * This version creates a low-poly humanoid model from basic shapes.
  * Now accepts size and speed parameters for creating different archetypes.
  */
-export class Vessel {
+class Vessel {
     constructor(scene, options = {}) {
         // Default options
-        const { color = 0x00ff00, size = 1.0, speed = 10, mapBounds = 50, type = 'marksman' } = options;
+        const { color = 0x00ff00, size = 1.0, speed = 10, mapBounds = 50 } = options;
 
         // A THREE.Group will act as the container for all parts of our model.
         this.mesh = new THREE.Group();
@@ -15,52 +15,40 @@ export class Vessel {
         const bodyMaterial = new THREE.MeshStandardMaterial({ color: color, flatShading: true });
         const headMaterial = new THREE.MeshStandardMaterial({ color: 0xffe0bd, flatShading: true }); // A simple skin tone
 
-        let torsoGeo, headGeo, armGeo, legGeo;
-
-        if (type === 'guardian') {
-            // Wider, bulkier proportions
-            torsoGeo = new THREE.BoxGeometry(1.4 * size, 1.5 * size, 0.8 * size);
-            headGeo = new THREE.IcosahedronGeometry(0.6 * size, 0);
-            armGeo = new THREE.BoxGeometry(0.4 * size, 1.4 * size, 0.4 * size);
-            legGeo = new THREE.BoxGeometry(0.5 * size, 1.5 * size, 0.5 * size);
-        } else { // 'marksman' or default
-            // Thinner, more agile proportions
-            torsoGeo = new THREE.BoxGeometry(0.8 * size, 1.6 * size, 0.5 * size);
-            headGeo = new THREE.IcosahedronGeometry(0.5 * size, 0);
-            armGeo = new THREE.BoxGeometry(0.2 * size, 1.5 * size, 0.2 * size);
-            legGeo = new THREE.BoxGeometry(0.25 * size, 1.7 * size, 0.25 * size);
-        }
-
         // Torso
-        const torso = new THREE.Mesh(torsoGeo, bodyMaterial);
+        const torsoGeometry = new THREE.BoxGeometry(1 * size, 1.5 * size, 0.5 * size);
+        const torso = new THREE.Mesh(torsoGeometry, bodyMaterial);
         torso.position.y = 0;
         torso.castShadow = true;
         this.mesh.add(torso);
 
         // Head
-        const head = new THREE.Mesh(headGeo, headMaterial);
+        const headGeometry = new THREE.IcosahedronGeometry(0.5 * size, 0);
+        const head = new THREE.Mesh(headGeometry, headMaterial);
         head.position.y = 1.25 * size;
         head.castShadow = true;
         this.mesh.add(head);
 
         // Arms
-        const leftArm = new THREE.Mesh(armGeo, bodyMaterial);
+        const armGeometry = new THREE.BoxGeometry(0.25 * size, 1.2 * size, 0.25 * size);
+        const leftArm = new THREE.Mesh(armGeometry, bodyMaterial);
         leftArm.position.set(-0.75 * size, 0.1 * size, 0);
         leftArm.castShadow = true;
         this.mesh.add(leftArm);
 
-        const rightArm = new THREE.Mesh(armGeo, bodyMaterial);
+        const rightArm = new THREE.Mesh(armGeometry, bodyMaterial);
         rightArm.position.set(0.75 * size, 0.1 * size, 0);
         rightArm.castShadow = true;
         this.mesh.add(rightArm);
 
         // Legs
-        const leftLeg = new THREE.Mesh(legGeo, bodyMaterial);
+        const legGeometry = new THREE.BoxGeometry(0.3 * size, 1.5 * size, 0.3 * size);
+        const leftLeg = new THREE.Mesh(legGeometry, bodyMaterial);
         leftLeg.position.set(-0.3 * size, -1.5 * size, 0);
         leftLeg.castShadow = true;
         this.mesh.add(leftLeg);
 
-        const rightLeg = new THREE.Mesh(legGeo, bodyMaterial);
+        const rightLeg = new THREE.Mesh(legGeometry, bodyMaterial);
         rightLeg.position.set(0.3 * size, -1.5 * size, 0);
         rightLeg.castShadow = true;
         this.mesh.add(rightLeg);
