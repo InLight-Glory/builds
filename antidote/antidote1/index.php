@@ -49,9 +49,7 @@
             <button class="build-menu-button" data-type="Barracks">Barracks</button>
             <button class="build-menu-button" data-type="Refinery">Refinery</button>
             <div id="map-settings-icon" style="position: absolute; top: 10px; right: 10px; width: 30px; height: 30px; cursor: pointer;">
-                <svg viewBox="0 0 24 24" aria-label="Cogwheel icon representing settings menu access in the game interface, displayed in a modern digital user interface environment" style="width: 100%; height: 100%; fill: white;" role="img" focusable="false">
-                    <path d="M19.14,12.94c0-.32,0-.64,0-.94s0-.62,0-.94l2.11-1.65a.5.5,0,0,0,.12-.65l-2-3.46a.5.5,0,0,0-.61-.22l-2.49,1a7.14,7.14,0,0,0-1.63-.94l-.38-2.65A.5.5,0,0,0,13,2H11a.5.5,0,0,0-.5.42l-.38,2.65a7.14,7.14,0,0,0-1.63.94l-2.49-1a.5.5,0,0,0-.61.22l-2,3.46a.5.5,0,0,0,.12.65L4.86,11.06c0,.32,0,.64,0,.94s0,.62,0,.94l-2.11,1.65a.5.5,0,0,0-.12.65l2,3.46a.5.5,0,0,0,.61.22l2.49-1a7.14,7.14,0,0,0,1.63.94l.38,2.65A.5.5,0,0,0,11,22h2a.5.5,0,0,0,.5-.42l.38-2.65a7.14,7.14,0,0,0,1.63-.94l2.49,1a.5.5,0,0,0,.61-.22l2-3.46a.5.5,0,0,0-.12-.65ZM12,15.5A3.5,3.5,0,1,1,15.5,12,3.5,3.5,0,0,1,12,15.5Z"/>
-                </svg></svg>
+                <img src="https://storage.googleapis.com/agent-tools-public-data/cog.svg" alt="Settings" style="width: 100%; height: 100%;">
             </div>
         </div>
     </div>
