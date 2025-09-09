@@ -131,32 +131,22 @@ createScenery();
 // --- GAME LOGIC & UI ---
 const clock = new THREE.Clock(); 
 
+const raycaster = new THREE.Raycaster();
+const mouse = new THREE.Vector2();
+const mouseWorldPosition = new THREE.Vector3();
+
+window.addEventListener('mousemove', (event) => {
+    mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+    mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+});
+
 // UI Elements
 const cooldownFill = document.getElementById('cooldown-fill');
 const cooldownText = document.getElementById('cooldown-text');
 
-import { Vessel } from './vessels/Vessel.js';
-import { TargetDummy } from './npcs/TargetDummy.js';
-import { Projectile } from './abilities/Projectile.js';
-
-// Create a target dummy
-const dummy = new TargetDummy(scene, new THREE.Vector3(0, 3, -15));
-
 // Create the player's Vessels
-const vessel1 = new Vessel(scene, {
-    type: 'marksman',
-    color: 0x0984e3,
-    size: 1.0,
-    speed: 10,
-    mapBounds: mapSize / 2
-});
-const vessel2 = new Vessel(scene, {
-    type: 'guardian',
-    color: 0xd63031,
-    size: 1.2,
-    speed: 7,
-    mapBounds: mapSize / 2
-});
+const vessel1 = new Vessel(scene, { color: 0x0984e3, size: 1.0, speed: 10, mapBounds: mapSize / 2 });
+const vessel2 = new Vessel(scene, { color: 0xd63031, size: 1.3, speed: 7, mapBounds: mapSize / 2 });
 
 // Swap mechanic variables
 let vessels = [vessel1, vessel2];
@@ -167,12 +157,9 @@ vessels[1].mesh.visible = false; // Start with the second vessel hidden
 const swapCooldown = 5.0; // 5 seconds
 let lastSwapTime = -swapCooldown; // Allow swapping immediately at the start
 
-// Listen for key presses
+// Listen for the swap key press
 window.addEventListener('keydown', (event) => {
-    const key = event.key.toLowerCase();
-
-    // Swap key
-    if (key === 'shift') {
+    if (event.key.toLowerCase() === 'shift') {
         const now = clock.getElapsedTime();
         if (now - lastSwapTime >= swapCooldown) {
             const oldVessel = vessels[activeVesselIndex];
@@ -185,39 +172,6 @@ window.addEventListener('keydown', (event) => {
             activeVessel.mesh.quaternion.copy(quaternion);
             activeVessel.mesh.visible = true;
             lastSwapTime = now;
-        }
-    }
-
-    // Level-up debug key
-    if (key === 'l') {
-        activeVessel.levelUp();
-    }
-});
-
-const raycaster = new THREE.Raycaster();
-const mouse = new THREE.Vector2();
-let projectiles = [];
-
-window.addEventListener('mousedown', (event) => {
-    // We only care about left-clicks for now
-    if (event.button !== 0) return;
-
-    mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-    mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-
-    raycaster.setFromCamera(mouse, camera);
-
-    const intersects = raycaster.intersectObject(dummy.mesh, true);
-
-    if (intersects.length > 0) {
-        const newProjectile = activeVessel.abilities.lmb.execute({
-            scene: scene,
-            target: dummy,
-            clock: clock
-        });
-
-        if (newProjectile) {
-            projectiles.push(newProjectile);
         }
     }
 });
@@ -237,21 +191,6 @@ function updateCooldownUI() {
     }
 }
 
-// --- UI Update Functions ---
-const statLevel = document.getElementById('stat-level');
-const statHealth = document.getElementById('stat-health');
-const statMana = document.getElementById('stat-mana');
-const statAd = document.getElementById('stat-ad');
-const statArmor = document.getElementById('stat-armor');
-
-function updateStatsUI(vessel) {
-    statLevel.textContent = vessel.level;
-    statHealth.textContent = `${Math.round(vessel.stats.currentHealth)} / ${Math.round(vessel.stats.maxHealth)}`;
-    statMana.textContent = `${Math.round(vessel.stats.currentMana)} / ${Math.round(vessel.stats.maxMana)}`;
-    statAd.textContent = vessel.stats.attackDamage.toFixed(1);
-    statArmor.textContent = vessel.stats.armor.toFixed(1);
-}
-
 
 // --- GAME LOOP ---
 function animate() {
@@ -264,18 +203,16 @@ function animate() {
     keystone.rotation.y += deltaTime * 0.2;
     keystone.scale.setScalar(Math.sin(elapsedTime * 0.5) * 0.05 + 1);
 
-    // Update game logic and UI
-    activeVessel.update(deltaTime, keysPressed, camera);
-    updateCooldownUI();
-    updateStatsUI(activeVessel);
-
-    // Update projectiles
-    for (let i = projectiles.length - 1; i >= 0; i--) {
-        const projectile = projectiles[i];
-        if (projectile.update(deltaTime)) {
-            projectiles.splice(i, 1);
-        }
+    // Update mouse position in world space
+    raycaster.setFromCamera(mouse, camera);
+    const groundIntersects = raycaster.intersectObject(ground);
+    if (groundIntersects.length > 0) {
+        mouseWorldPosition.copy(groundIntersects[0].point);
     }
+
+    // Update game logic
+    activeVessel.update(deltaTime, keysPressed, camera, mouseWorldPosition);
+    updateCooldownUI();
 
     // Camera follows the active player
     const targetPosition = activeVessel.mesh.position.clone().add(cameraOffset);

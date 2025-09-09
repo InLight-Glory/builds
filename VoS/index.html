@@ -48,24 +48,6 @@
             z-index: 2;
             text-shadow: 1px 1px 3px #000;
         }
-        /* Stats Display Styles */
-        #stats-container {
-            position: absolute;
-            bottom: 20px;
-            left: 20px;
-            background-color: rgba(0, 0, 0, 0.5);
-            color: white;
-            padding: 10px;
-            border-radius: 5px;
-            font-family: sans-serif;
-            font-size: 14px;
-            width: 200px;
-        }
-        .stat-line {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 5px;
-        }
     </style>
 </head>
 <body>
@@ -78,34 +60,11 @@
         <div id="cooldown-text">SHIFT</div>
     </div>
 
-    <!-- The UI element for the stats display -->
-    <div id="stats-container">
-        <div class="stat-line">
-            <span>Level:</span>
-            <span id="stat-level">1</span>
-        </div>
-        <div class="stat-line">
-            <span>Health:</span>
-            <span id="stat-health">0 / 0</span>
-        </div>
-        <div class="stat-line">
-            <span>Mana:</span>
-            <span id="stat-mana">0 / 0</span>
-        </div>
-        <div class="stat-line">
-            <span>Attack Damage:</span>
-            <span id="stat-ad">0</span>
-        </div>
-        <div class="stat-line">
-            <span>Armor:</span>
-            <span id="stat-armor">0</span>
-        </div>
-    </div>
-
     <!-- Import Three.js library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     
-    <!-- Import our custom game scripts as modules -->
-    <script type="module" src="main.js"></script>
+    <!-- Import our custom game scripts -->
+    <script src="vessels/Vessel.js"></script>
+    <script src="main.js"></script>
 </body>
 </html>
