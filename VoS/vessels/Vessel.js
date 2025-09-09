@@ -4,6 +4,7 @@
  * Now includes a stat and leveling system.
  */
 import { BasicAttack } from '../abilities/BasicAttack.js';
+import { ChargeAttack } from '../abilities/ChargeAttack.js';
 
 export class Vessel {
     constructor(scene, options = {}) {
@@ -79,6 +80,7 @@ export class Vessel {
      */
     initializeAbilities() {
         this.abilities.lmb = new BasicAttack(this);
+        this.abilities.rmb = new ChargeAttack(this);
         // In the future, we would add Q, E, R abilities here
     }
 

@@ -31,30 +31,16 @@ scene.add(directionalLight);
 // --- MAP & SCENERY ---
 const mapSize = 250;
 const groundGeometry = new THREE.PlaneGeometry(mapSize, mapSize);
-const groundMaterial = new THREE.MeshStandardMaterial({ color: 0x2d3436 });
+const textureLoader = new THREE.TextureLoader();
+const groundTexture = textureLoader.load('https://threejs.org/examples/textures/terrain/grasslight-big.jpg');
+groundTexture.wrapS = THREE.RepeatWrapping;
+groundTexture.wrapT = THREE.RepeatWrapping;
+groundTexture.repeat.set(50, 50);
+const groundMaterial = new THREE.MeshStandardMaterial({ map: groundTexture });
 const ground = new THREE.Mesh(groundGeometry, groundMaterial);
 ground.rotation.x = -Math.PI / 2;
 ground.receiveShadow = true;
 scene.add(ground);
-// --- BUSHES ---
-const bushGeometry = new THREE.SphereGeometry(2, 16, 16);
-const bushMaterial = new THREE.MeshStandardMaterial({ color: 0x218c5a });
-const bushPositions = [
-    [-30, 1, -30],
-    [40, 1, 20],
-    [-60, 1, 50],
-    [70, 1, -40],
-    [0, 1, 60],
-    [-80, 1, 0],
-    [80, 1, 80]
-];
-bushPositions.forEach(pos => {
-    const bush = new THREE.Mesh(bushGeometry, bushMaterial);
-    bush.position.set(pos[0], pos[1], pos[2]);
-    bush.castShadow = true;
-    bush.receiveShadow = true;
-    scene.add(bush);
-});
 
 // --- GAME STATE ---
 let isPaused = false;
@@ -68,6 +54,7 @@ const mouseWorldPosition = new THREE.Vector3();
 
 // Create a target dummy
 const dummy = new TargetDummy(scene, new THREE.Vector3(0, 3, -15));
+const damageableNpcs = [dummy];
 
 // Create the player's Vessels
 const vessel1 = new Vessel(scene, { type: 'marksman', color: 0x0984e3, size: 1.0, speed: 10, mapBounds: mapSize / 2 });
@@ -132,57 +119,25 @@ window.addEventListener('keydown', (event) => {
     }
 });
 
-let isChargingSecondary = false;
-let chargeStartTime = 0;
-
 window.addEventListener('mousedown', (event) => {
     if (isPaused) return;
-    raycaster.setFromCamera(mouse, camera);
-    const groundIntersects = raycaster.intersectObject(ground);
-    let targetPosition = mouseWorldPosition.clone();
-    if (groundIntersects.length > 0) {
-        targetPosition = groundIntersects[0].point.clone();
+
+    let abilityToExecute;
+    if (event.button === 0) { // Left-click
+        abilityToExecute = activeVessel.abilities.lmb;
+    } else if (event.button === 2) { // Right-click
+        abilityToExecute = activeVessel.abilities.rmb;
     }
-    if (event.button === 0) {
-        // LMB: Quick attack
-        const newProjectile = activeVessel.abilities.lmb.execute({
+
+    if (abilityToExecute) {
+        const newProjectile = abilityToExecute.execute({
             scene: scene,
-            target: targetPosition,
+            mouseWorldPosition: mouseWorldPosition,
             clock: clock
         });
+
         if (newProjectile) {
             projectiles.push(newProjectile);
-        }
-    } else if (event.button === 2) {
-        // RMB: Start charging secondary attack
-        isChargingSecondary = true;
-        chargeStartTime = clock.getElapsedTime();
-    }
-});
-
-window.addEventListener('mouseup', (event) => {
-    if (isPaused) return;
-    if (event.button === 2 && isChargingSecondary) {
-        // RMB released: Shoot charged secondary attack
-        isChargingSecondary = false;
-        const chargeDuration = clock.getElapsedTime() - chargeStartTime;
-        raycaster.setFromCamera(mouse, camera);
-        const groundIntersects = raycaster.intersectObject(ground);
-        let targetPosition = mouseWorldPosition.clone();
-        if (groundIntersects.length > 0) {
-            targetPosition = groundIntersects[0].point.clone();
-        }
-        // If you have a secondary ability, call it here. Example:
-        if (activeVessel.abilities.secondary) {
-            const secondaryProjectile = activeVessel.abilities.secondary.execute({
-                scene: scene,
-                target: targetPosition,
-                clock: clock,
-                charge: chargeDuration
-            });
-            if (secondaryProjectile) {
-                projectiles.push(secondaryProjectile);
-            }
         }
     }
 });
@@ -235,7 +190,7 @@ function animate() {
     updateStatsUI(activeVessel);
 
     for (let i = projectiles.length - 1; i >= 0; i--) {
-        if (projectiles[i].update(deltaTime)) {
+        if (projectiles[i].update(deltaTime, damageableNpcs)) {
             projectiles.splice(i, 1);
         }
     }
