@@ -3,6 +3,8 @@
  * This version creates a low-poly humanoid model from basic shapes.
  * Now includes a stat and leveling system.
  */
+import { BasicAttack } from '../abilities/BasicAttack.js';
+
 export class Vessel {
     constructor(scene, options = {}) {
         // Default options
@@ -12,8 +14,10 @@ export class Vessel {
         this.level = 1;
         this.stats = {};
         this.statGrowth = {};
+        this.abilities = {};
 
         this.initializeStats();
+        this.initializeAbilities();
 
         // A THREE.Group will act as the container for all parts of our model.
         this.mesh = new THREE.Group();
@@ -68,6 +72,14 @@ export class Vessel {
 
         // Add the entire group to the main scene
         scene.add(this.mesh);
+    }
+
+    /**
+     * Creates instances of the vessel's abilities.
+     */
+    initializeAbilities() {
+        this.abilities.lmb = new BasicAttack(this);
+        // In the future, we would add Q, E, R abilities here
     }
 
     /**

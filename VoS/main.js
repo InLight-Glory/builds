@@ -136,6 +136,11 @@ const cooldownFill = document.getElementById('cooldown-fill');
 const cooldownText = document.getElementById('cooldown-text');
 
 import { Vessel } from './vessels/Vessel.js';
+import { TargetDummy } from './npcs/TargetDummy.js';
+import { Projectile } from './abilities/Projectile.js';
+
+// Create a target dummy
+const dummy = new TargetDummy(scene, new THREE.Vector3(0, 3, -15));
 
 // Create the player's Vessels
 const vessel1 = new Vessel(scene, {
@@ -189,6 +194,34 @@ window.addEventListener('keydown', (event) => {
     }
 });
 
+const raycaster = new THREE.Raycaster();
+const mouse = new THREE.Vector2();
+let projectiles = [];
+
+window.addEventListener('mousedown', (event) => {
+    // We only care about left-clicks for now
+    if (event.button !== 0) return;
+
+    mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+    mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+    raycaster.setFromCamera(mouse, camera);
+
+    const intersects = raycaster.intersectObject(dummy.mesh, true);
+
+    if (intersects.length > 0) {
+        const newProjectile = activeVessel.abilities.lmb.execute({
+            scene: scene,
+            target: dummy,
+            clock: clock
+        });
+
+        if (newProjectile) {
+            projectiles.push(newProjectile);
+        }
+    }
+});
+
 function updateCooldownUI() {
     const now = clock.getElapsedTime();
     const timeSinceSwap = now - lastSwapTime;
@@ -235,6 +268,14 @@ function animate() {
     activeVessel.update(deltaTime, keysPressed, camera);
     updateCooldownUI();
     updateStatsUI(activeVessel);
+
+    // Update projectiles
+    for (let i = projectiles.length - 1; i >= 0; i--) {
+        const projectile = projectiles[i];
+        if (projectile.update(deltaTime)) {
+            projectiles.splice(i, 1);
+        }
+    }
 
     // Camera follows the active player
     const targetPosition = activeVessel.mesh.position.clone().add(cameraOffset);
