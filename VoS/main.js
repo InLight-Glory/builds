@@ -41,6 +41,25 @@ const ground = new THREE.Mesh(groundGeometry, groundMaterial);
 ground.rotation.x = -Math.PI / 2;
 ground.receiveShadow = true;
 scene.add(ground);
+// --- BUSHES ---
+const bushGeometry = new THREE.SphereGeometry(2, 16, 16);
+const bushMaterial = new THREE.MeshStandardMaterial({ color: 0x218c5a });
+const bushPositions = [
+    [-30, 2, -30],
+    [40, 2, 20],
+    [-60, 2, 50],
+    [70, 2, -40],
+    [0, 2, 60],
+    [-80, 2, 0],
+    [80, 2, 80]
+];
+bushPositions.forEach(pos => {
+    const bush = new THREE.Mesh(bushGeometry, bushMaterial);
+    bush.position.set(pos[0], pos[1], pos[2]);
+    bush.castShadow = true;
+    bush.receiveShadow = true;
+    scene.add(bush);
+});
 
 // --- GAME STATE ---
 let isPaused = false;

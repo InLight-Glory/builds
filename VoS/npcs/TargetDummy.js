@@ -11,12 +11,12 @@ export class TargetDummy {
         this.mesh = new THREE.Group();
         this.mesh.position.copy(position);
 
-        // Body of the dummy
-        const bodyGeometry = new THREE.CylinderGeometry(1.5, 1.5, 6, 16);
-        const bodyMaterial = new THREE.MeshStandardMaterial({ color: 0x8B4513 });
-        const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
-        body.castShadow = true;
-        this.mesh.add(body);
+    // Body of the dummy (larger hitbox)
+    const bodyGeometry = new THREE.CylinderGeometry(2.5, 2.5, 8, 16);
+    const bodyMaterial = new THREE.MeshStandardMaterial({ color: 0x8B4513 });
+    const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
+    body.castShadow = true;
+    this.mesh.add(body);
 
         // Health bar background
         const healthBarBGGeometry = new THREE.PlaneGeometry(4, 0.4);

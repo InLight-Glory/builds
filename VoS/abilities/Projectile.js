@@ -1,5 +1,5 @@
 export class Projectile {
-    constructor(scene, startPosition, direction, damage, speed = 30, range = 50) {
+    constructor(scene, startPosition, direction, damage, speed = 30, range = 20) {
         this.scene = scene;
         this.damage = damage;
         this.speed = speed;
@@ -29,13 +29,18 @@ export class Projectile {
         this.mesh.position.z += this.velocity.z * deltaTime;
         this.distanceTraveled += distanceThisFrame;
 
-        // Check for collision with any target
+        // Check for collision with any target (use body mesh for hit detection)
         for (const target of targets) {
-            const distanceToTarget = this.mesh.position.distanceTo(target.mesh.position);
-            if (distanceToTarget < 1.5) { // Collision threshold
-                target.takeDamage(this.damage);
-                this.destroy();
-                return true; // Signal for removal
+            // Assume the first child of target.mesh is the body
+            const body = target.mesh.children[0];
+            if (body) {
+                const distanceToBody = this.mesh.position.distanceTo(body.getWorldPosition(new THREE.Vector3()));
+                const hitRadius = body.geometry.parameters.radiusTop || 2.5;
+                if (distanceToBody < hitRadius + 0.2) { // Use body radius + projectile radius
+                    target.takeDamage(this.damage);
+                    this.destroy();
+                    return true; // Signal for removal
+                }
             }
         }
 
