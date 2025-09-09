@@ -36,6 +36,25 @@ const ground = new THREE.Mesh(groundGeometry, groundMaterial);
 ground.rotation.x = -Math.PI / 2;
 ground.receiveShadow = true;
 scene.add(ground);
+// --- BUSHES ---
+const bushGeometry = new THREE.SphereGeometry(2, 16, 16);
+const bushMaterial = new THREE.MeshStandardMaterial({ color: 0x218c5a });
+const bushPositions = [
+    [-30, 1, -30],
+    [40, 1, 20],
+    [-60, 1, 50],
+    [70, 1, -40],
+    [0, 1, 60],
+    [-80, 1, 0],
+    [80, 1, 80]
+];
+bushPositions.forEach(pos => {
+    const bush = new THREE.Mesh(bushGeometry, bushMaterial);
+    bush.position.set(pos[0], pos[1], pos[2]);
+    bush.castShadow = true;
+    bush.receiveShadow = true;
+    scene.add(bush);
+});
 
 // --- GAME STATE ---
 let isPaused = false;
@@ -113,19 +132,57 @@ window.addEventListener('keydown', (event) => {
     }
 });
 
+let isChargingSecondary = false;
+let chargeStartTime = 0;
+
 window.addEventListener('mousedown', (event) => {
     if (isPaused) return;
-    if (event.button !== 0) return; // Left-click only
     raycaster.setFromCamera(mouse, camera);
-    const intersects = raycaster.intersectObject(dummy.mesh, true);
-    if (intersects.length > 0) {
+    const groundIntersects = raycaster.intersectObject(ground);
+    let targetPosition = mouseWorldPosition.clone();
+    if (groundIntersects.length > 0) {
+        targetPosition = groundIntersects[0].point.clone();
+    }
+    if (event.button === 0) {
+        // LMB: Quick attack
         const newProjectile = activeVessel.abilities.lmb.execute({
             scene: scene,
-            target: dummy,
+            target: targetPosition,
             clock: clock
         });
         if (newProjectile) {
             projectiles.push(newProjectile);
+        }
+    } else if (event.button === 2) {
+        // RMB: Start charging secondary attack
+        isChargingSecondary = true;
+        chargeStartTime = clock.getElapsedTime();
+    }
+});
+
+window.addEventListener('mouseup', (event) => {
+    if (isPaused) return;
+    if (event.button === 2 && isChargingSecondary) {
+        // RMB released: Shoot charged secondary attack
+        isChargingSecondary = false;
+        const chargeDuration = clock.getElapsedTime() - chargeStartTime;
+        raycaster.setFromCamera(mouse, camera);
+        const groundIntersects = raycaster.intersectObject(ground);
+        let targetPosition = mouseWorldPosition.clone();
+        if (groundIntersects.length > 0) {
+            targetPosition = groundIntersects[0].point.clone();
+        }
+        // If you have a secondary ability, call it here. Example:
+        if (activeVessel.abilities.secondary) {
+            const secondaryProjectile = activeVessel.abilities.secondary.execute({
+                scene: scene,
+                target: targetPosition,
+                clock: clock,
+                charge: chargeDuration
+            });
+            if (secondaryProjectile) {
+                projectiles.push(secondaryProjectile);
+            }
         }
     }
 });
