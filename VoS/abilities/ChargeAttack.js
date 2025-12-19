@@ -21,9 +21,10 @@ export class ChargeAttack extends Ability {
 
         const startPosition = this.vessel.mesh.position.clone().setY(2);
 
-        const direction = new THREE.Vector3()
-            .subVectors(mouseWorldPosition, startPosition)
-            .normalize();
+        const direction = new THREE.Vector3().subVectors(mouseWorldPosition, startPosition);
+        direction.y = 0;
+        if (direction.lengthSq() === 0) return;
+        direction.normalize();
 
         // Create a new, slightly different projectile to distinguish it
         const projectile = new Projectile(scene, startPosition, direction, damage, 40, 60); // Faster, longer range

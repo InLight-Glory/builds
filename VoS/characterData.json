@@ -1,0 +1,79 @@
+[
+    {
+        "id": "red",
+        "name": "Red",
+        "type": "guardian",
+        "color": 14037041,
+        "desc": "Tanky Defender",
+        "size": 1.2,
+        "speed": 7,
+        "primary": "Melee",
+        "secondary": "Charge"
+    },
+    {
+        "id": "blue",
+        "name": "Blue",
+        "type": "marksman",
+        "color": 623843,
+        "desc": "Ranged DPS",
+        "size": 1.0,
+        "speed": 10,
+        "primary": "Projectile",
+        "secondary": "Charge"
+    },
+    {
+        "id": "yellow",
+        "name": "Yellow",
+        "type": "marksman",
+        "color": 16632686,
+        "desc": "Speedy Scout",
+        "size": 1.0,
+        "speed": 18,
+        "primary": "Projectile",
+        "secondary": "Melee"
+    },
+    {
+        "id": "orange",
+        "name": "Orange",
+        "type": "guardian",
+        "color": 14774357,
+        "desc": "Brawler",
+        "size": 1.05,
+        "speed": 8,
+        "primary": "Melee",
+        "secondary": "Melee"
+    },
+    {
+        "id": "purple",
+        "name": "Purple",
+        "type": "guardian",
+        "color": 7101671,
+        "desc": "Balanced",
+        "size": 1.2,
+        "speed": 7,
+        "primary": "Psychic",
+        "secondary": "Charge"
+    },
+    {
+        "id": "black",
+        "name": "Black",
+        "type": "marksman",
+        "color": 2962486,
+        "desc": "Stealth Ops",
+        "size": 1.0,
+        "speed": 10,
+        "primary": "Projectile",
+        "secondary": "Psychic"
+    },
+    {
+        "id": "pink",
+        "name": "Pink",
+        "type": "guardian",
+        "color": 15221651,
+        "desc": "Support",
+        "size": 0.75,
+        "speed": 9,
+        "primary": "Psychic",
+        "secondary": "Psychic"
+    }
+]

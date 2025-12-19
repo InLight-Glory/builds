@@ -64,4 +64,22 @@ This is a passion project, and we are always looking for talented developers to 
 
 ---
 
+## Other todo
+general
+- base
+
+bot
+- collectors
+-- wood
+-- stone
+- protectors
+-- light
+-- medium
+-- heavy
+- inspectors
+-- explore
+-- alert
+
+
+
 > *"The world has fallen, but we will rise again. We are the Antidote."*

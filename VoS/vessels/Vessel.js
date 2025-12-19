@@ -5,13 +5,33 @@
  */
 import { BasicAttack } from '../abilities/BasicAttack.js';
 import { ChargeAttack } from '../abilities/ChargeAttack.js';
+import { MeleeAttack } from '../abilities/MeleeAttack.js';
+import { PsychicAttack } from '../abilities/PsychicAttack.js';
+
+const ABILITY_MAP = {
+    'Projectile': BasicAttack,
+    'Charge': ChargeAttack,
+    'Melee': MeleeAttack,
+    'Psychic': PsychicAttack
+};
 
 export class Vessel {
     constructor(scene, options = {}) {
         // Default options
-        const { color = 0x00ff00, size = 1.0, speed = 10, mapBounds = 50, type = 'marksman' } = options;
+        const {
+            color = 0x00ff00,
+            size = 1.0,
+            speed = 10,
+            mapBounds = 50,
+            type = 'marksman',
+            primary = 'Projectile',
+            secondary = 'Charge'
+        } = options;
 
         this.type = type;
+        this.primaryRequest = primary;
+        this.secondaryRequest = secondary;
+
         this.level = 1;
         this.stats = {};
         this.statGrowth = {};
@@ -79,9 +99,11 @@ export class Vessel {
      * Creates instances of the vessel's abilities.
      */
     initializeAbilities() {
-        this.abilities.lmb = new BasicAttack(this);
-        this.abilities.rmb = new ChargeAttack(this);
-        // In the future, we would add Q, E, R abilities here
+        const PrimaryClass = ABILITY_MAP[this.primaryRequest] || BasicAttack;
+        const SecondaryClass = ABILITY_MAP[this.secondaryRequest] || ChargeAttack;
+
+        this.abilities.lmb = new PrimaryClass(this);
+        this.abilities.rmb = new SecondaryClass(this);
     }
 
     /**
@@ -162,7 +184,7 @@ export class Vessel {
         if (keysPressed['s']) moveDirection.sub(cameraForward);
         if (keysPressed['a']) moveDirection.add(cameraRight);
         if (keysPressed['d']) moveDirection.sub(cameraRight);
-        
+
         this.velocity.copy(moveDirection);
 
         if (this.velocity.lengthSq() > 0) {

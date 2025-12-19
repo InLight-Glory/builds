@@ -23,9 +23,12 @@ export class BasicAttack extends Ability {
         const startPosition = this.vessel.mesh.position.clone().setY(2);
 
         // Calculate direction from vessel to the mouse cursor position on the ground
-        const direction = new THREE.Vector3()
-            .subVectors(mouseWorldPosition, startPosition)
-            .normalize();
+        const direction = new THREE.Vector3().subVectors(mouseWorldPosition, startPosition);
+        // In an isometric/top-down game we typically shoot along the ground plane.
+        // Using the full 3D vector makes shots travel downward toward y=0 and miss tall targets.
+        direction.y = 0;
+        if (direction.lengthSq() === 0) return;
+        direction.normalize();
 
         // Create a new projectile
         const newProjectile = new Projectile(scene, startPosition, direction, damage);
