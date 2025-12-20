@@ -25,12 +25,16 @@ export class Vessel {
             mapBounds = 50,
             type = 'marksman',
             primary = 'Projectile',
-            secondary = 'Charge'
+            secondary = 'Charge',
+            primaryCooldown = 0.5,
+            secondaryCooldown = 2.0
         } = options;
 
         this.type = type;
         this.primaryRequest = primary;
         this.secondaryRequest = secondary;
+        this.primaryCooldown = primaryCooldown;
+        this.secondaryCooldown = secondaryCooldown;
 
         this.level = 1;
         this.stats = {};
@@ -102,8 +106,8 @@ export class Vessel {
         const PrimaryClass = ABILITY_MAP[this.primaryRequest] || BasicAttack;
         const SecondaryClass = ABILITY_MAP[this.secondaryRequest] || ChargeAttack;
 
-        this.abilities.lmb = new PrimaryClass(this);
-        this.abilities.rmb = new SecondaryClass(this);
+        this.abilities.lmb = new PrimaryClass(this, this.primaryCooldown);
+        this.abilities.rmb = new SecondaryClass(this, this.secondaryCooldown);
     }
 
     /**

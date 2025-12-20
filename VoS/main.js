@@ -62,15 +62,7 @@ bushPositions.forEach(pos => {
 });
 
 // --- CHARACTER CONFIG ---
-const availableCharacters = [
-    { id: 'red', name: 'Red', type: 'guardian', color: 0xd63031, desc: 'Tanky Defender' },
-    { id: 'blue', name: 'Blue', type: 'marksman', color: 0x0984e3, desc: 'Ranged DPS' },
-    { id: 'yellow', name: 'Yellow', type: 'marksman', color: 0xfdcb6e, desc: 'Speedy Scout' },
-    { id: 'orange', name: 'Orange', type: 'guardian', color: 0xe17055, desc: 'Brawler' },
-    { id: 'purple', name: 'Purple', type: 'guardian', color: 0x6c5ce7, desc: 'Balanced' }, // Using guardian model for now
-    { id: 'black', name: 'Black', type: 'marksman', color: 0x2d3436, desc: 'Stealth Ops' },
-    { id: 'pink', name: 'Pink', type: 'guardian', color: 0xe84393, desc: 'Support' }
-];
+let availableCharacters = [];
 
 let selectedCharacterIds = [];
 let vessels = [];
@@ -84,6 +76,16 @@ const characterGrid = document.getElementById('character-grid');
 const startGameBtn = document.getElementById('start-game-btn');
 const cooldownContainer = document.getElementById('cooldown-container');
 const statsContainer = document.getElementById('stats-container');
+
+async function loadCharacterData() {
+    try {
+        const response = await fetch('characterData.json');
+        availableCharacters = await response.json();
+        initSelectionScreen();
+    } catch (error) {
+        console.error('Failed to load character data:', error);
+    }
+}
 
 function initSelectionScreen() {
     availableCharacters.forEach(char => {
@@ -125,11 +127,6 @@ function toggleSelection(id) {
             card.classList.add('selected');
         } else {
             // Optional: Auto-deselect the first one to allow quick swapping
-            // For now, just restricting to 2 max is fine or user has to deselect first
-            // Let's implement "Replace oldest" behavior for better UX?
-            // Actually, let's stick to simple "Deselect one to pick another" for clarity first
-            // Or, just notify user they picked max. 
-            // Let's do nothing if max reached to keep it simple, user sees visual feedback.
         }
     }
 
@@ -173,18 +170,12 @@ function startGame() {
     const char2 = availableCharacters.find(c => c.id === selectedCharacterIds[1]);
 
     const v1 = new Vessel(scene, {
-        type: char1.type,
-        color: char1.color,
-        size: char1.type === 'guardian' ? 1.2 : 1.0,
-        speed: char1.type === 'guardian' ? 7 : 10,
+        ...char1,
         mapBounds: mapSize / 2
     });
 
     const v2 = new Vessel(scene, {
-        type: char2.type,
-        color: char2.color,
-        size: char2.type === 'guardian' ? 1.2 : 1.0,
-        speed: char2.type === 'guardian' ? 7 : 10,
+        ...char2,
         mapBounds: mapSize / 2
     });
 
@@ -197,12 +188,6 @@ function startGame() {
     animate();
 }
 
-const swapCooldown = 5.0;
-let lastSwapTime = -swapCooldown;
-
-// Initialize Selection Screen
-initSelectionScreen();
-
 // --- UI Elements ---
 const cooldownFill = document.getElementById('cooldown-fill');
 const cooldownText = document.getElementById('cooldown-text');
@@ -213,6 +198,9 @@ const statAd = document.getElementById('stat-ad');
 const statArmor = document.getElementById('stat-armor');
 const pauseMenu = document.getElementById('pause-menu');
 const resumeButton = document.getElementById('resume-button');
+
+const swapCooldown = 5.0;
+let lastSwapTime = -swapCooldown;
 
 // --- EVENT LISTENERS ---
 window.addEventListener('mousemove', (event) => {
@@ -298,6 +286,7 @@ function updateCooldownUI() {
 }
 
 function updateStatsUI(vessel) {
+    if (!vessel) return;
     statLevel.textContent = vessel.level;
     statHealth.textContent = `${Math.round(vessel.stats.currentHealth)} / ${Math.round(vessel.stats.maxHealth)}`;
     statMana.textContent = `${Math.round(vessel.stats.currentMana)} / ${Math.round(vessel.stats.maxMana)}`;
@@ -307,7 +296,7 @@ function updateStatsUI(vessel) {
 
 // --- GAME LOOP ---
 function animate() {
-    if (!isGameStarted) return; // Stop if not started
+    if (!isGameStarted) return;
 
     requestAnimationFrame(animate);
 
@@ -352,6 +341,5 @@ window.addEventListener('resize', () => {
     renderer.setSize(window.innerWidth, window.innerHeight);
 });
 
-// Remove direct call to animate(), it's called by startGame now
-// Selection screen is already initialized above and will call startGame()
-
+// Start loading the game data
+loadCharacterData();

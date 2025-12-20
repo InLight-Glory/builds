@@ -8,7 +8,9 @@
         "size": 1.2,
         "speed": 7,
         "primary": "Melee",
-        "secondary": "Charge"
+        "primaryCooldown": 0.2,
+        "secondary": "Charge",
+        "secondaryCooldown": 2.0
     },
     {
         "id": "blue",
@@ -19,7 +21,9 @@
         "size": 1.0,
         "speed": 10,
         "primary": "Projectile",
-        "secondary": "Charge"
+        "primaryCooldown": 0.5,
+        "secondary": "Charge",
+        "secondaryCooldown": 2.0
     },
     {
         "id": "yellow",
@@ -30,7 +34,9 @@
         "size": 1.0,
         "speed": 18,
         "primary": "Projectile",
-        "secondary": "Melee"
+        "primaryCooldown": 0.5,
+        "secondary": "Melee",
+        "secondaryCooldown": 0.1
     },
     {
         "id": "orange",
@@ -41,7 +47,9 @@
         "size": 1.05,
         "speed": 8,
         "primary": "Melee",
-        "secondary": "Melee"
+        "primaryCooldown": 0.2,
+        "secondary": "Melee",
+        "secondaryCooldown": 0.3
     },
     {
         "id": "purple",
@@ -52,7 +60,9 @@
         "size": 1.2,
         "speed": 7,
         "primary": "Psychic",
-        "secondary": "Charge"
+        "primaryCooldown": 0.8,
+        "secondary": "Charge",
+        "secondaryCooldown": 2.0
     },
     {
         "id": "black",
@@ -63,7 +73,9 @@
         "size": 1.0,
         "speed": 10,
         "primary": "Projectile",
-        "secondary": "Psychic"
+        "primaryCooldown": 0.5,
+        "secondary": "Psychic",
+        "secondaryCooldown": 0.8
     },
     {
         "id": "pink",
@@ -74,6 +86,8 @@
         "size": 0.75,
         "speed": 9,
         "primary": "Psychic",
-        "secondary": "Psychic"
+        "primaryCooldown": 0.8,
+        "secondary": "Psychic",
+        "secondaryCooldown": 0.8
     }
 ]

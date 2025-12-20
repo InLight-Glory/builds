@@ -1,10 +1,13 @@
 export class Projectile {
-    constructor(scene, startPosition, direction, damage, speed = 30, range = 20) {
+    constructor(scene, startPosition, direction, damage, speed = 30, range = 20, lifetime = null) {
         this.scene = scene;
         this.damage = damage;
         this.speed = speed;
         this.range = range;
+        this.lifetime = lifetime;
         this.distanceTraveled = 0;
+        this.age = 0;
+        this.overrideRadius = null;
 
         // Tuning: increases hit reliability in isometric/top-down view without enlarging target hitboxes.
         // This is added to the projectile's own radius during collision checks.
@@ -21,6 +24,7 @@ export class Projectile {
     }
 
     getCollisionRadius() {
+        if (this.overrideRadius !== null) return this.overrideRadius;
         const baseRadius = this.mesh.geometry?.parameters?.radius ?? 0.2;
         const scale = this.mesh.scale?.x ?? 1;
         return baseRadius * scale + this.hitForgiveness;
@@ -92,9 +96,16 @@ export class Projectile {
         }
 
         // Check if projectile has exceeded its range
-        if (this.distanceTraveled >= this.range) {
+        if (this.distanceTraveled >= this.range && this.range > 0) { // Only check range if > 0
             this.destroy();
             return true; // Signal for removal
+        }
+
+        // Check lifetime
+        this.age += deltaTime;
+        if (this.lifetime !== null && this.age >= this.lifetime) {
+            this.destroy();
+            return true;
         }
 
         return false;

@@ -2,9 +2,9 @@ import { Ability } from './Ability.js';
 import { Projectile } from './Projectile.js';
 
 export class ChargeAttack extends Ability {
-    constructor(vessel) {
+    constructor(vessel, cooldownOverride = null) {
         // This attack has a longer cooldown and higher damage potential
-        super(vessel, 'Charge Attack', 2.0, 15); // 2 second cooldown, 15 mana cost
+        super(vessel, 'Charge Attack', cooldownOverride ?? 2.0, 15); // 2 second cooldown, 15 mana cost
     }
 
     /**

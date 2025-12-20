@@ -2,8 +2,8 @@ import { Ability } from './Ability.js';
 import { Projectile } from './Projectile.js';
 
 export class BasicAttack extends Ability {
-    constructor(vessel) {
-        super(vessel, 'Basic Attack', 0.5, 0);
+    constructor(vessel, cooldownOverride = null) {
+        super(vessel, 'Basic Attack', cooldownOverride ?? 0.5, 0);
     }
 
     /**

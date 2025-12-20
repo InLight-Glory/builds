@@ -2,8 +2,8 @@ import { Ability } from './Ability.js';
 import { Projectile } from './Projectile.js';
 
 export class PsychicAttack extends Ability {
-    constructor(vessel) {
-        super(vessel, 'Psychic Attack', 0.8, 10); // 0.8s cooldown, 10 mana
+    constructor(vessel, cooldownOverride = null) {
+        super(vessel, 'Psychic Attack', cooldownOverride ?? 0.8, 10); // 0.8s cooldown, 10 mana
     }
 
     execute(options) {
