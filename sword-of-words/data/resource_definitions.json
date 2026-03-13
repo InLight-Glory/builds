@@ -1,0 +1,32 @@
+[
+  {
+    "id": "water",
+    "display_name": "Water",
+    "base_cost_weight": 0.6,
+    "color": "#4A90E2"
+  },
+  {
+    "id": "oil",
+    "display_name": "Oil",
+    "base_cost_weight": 1.0,
+    "color": "#3A3A3A"
+  },
+  {
+    "id": "air",
+    "display_name": "Air",
+    "base_cost_weight": 0.8,
+    "color": "#B7D8F5"
+  },
+  {
+    "id": "metals",
+    "display_name": "Metals",
+    "base_cost_weight": 1.2,
+    "color": "#A6A6A6"
+  },
+  {
+    "id": "minerals",
+    "display_name": "Minerals",
+    "base_cost_weight": 1.1,
+    "color": "#B99B6B"
+  }
+]

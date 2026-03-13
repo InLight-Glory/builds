@@ -1,0 +1,19 @@
+[
+  {
+    "id": "override_volcanic_01",
+    "position": { "x": 420, "y": 40, "z": -180 },
+    "size": 52.0,
+    "gravity": 24.0,
+    "friction": 0.62,
+    "biome": "Volcanic",
+    "resources": {
+      "water": { "max": 180, "regen_speed": 0.7, "abundance": 0.2 },
+      "oil": { "max": 1800, "regen_speed": 3.1, "abundance": 0.95 },
+      "air": { "max": 460, "regen_speed": 1.7, "abundance": 0.35 },
+      "metals": { "max": 2300, "regen_speed": 0.55, "abundance": 0.85 },
+      "minerals": { "max": 1300, "regen_speed": 0.35, "abundance": 0.72 }
+    },
+    "is_override": true,
+    "seed_id": 199204
+  }
+]

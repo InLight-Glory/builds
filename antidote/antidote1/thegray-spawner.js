@@ -2,13 +2,25 @@
 // Handles spawning and despawning of The-Gray enemies
 
 // --- CONFIGURABLE SPAWNER CONSTANTS ---
-const THE_GRAY_SPAWN_INTERVAL = 15 * 60; // 15 minutes in seconds
-// const THE_GRAY_SPAWN_INTERVAL = 20; // FOR TESTING: Spawn every 20 seconds
-const THE_GRAY_MAX_COUNT = 5;
+const THE_GRAY_BASE_SPAWN_INTERVAL = 35;
+const THE_GRAY_MIN_SPAWN_INTERVAL = 8;
+const THE_GRAY_BASE_MAX_COUNT = 5;
 const THE_GRAY_SPAWN_DISTANCE = 200.0;
 const THE_GRAY_SPAWN_HEIGHT = 0.9;
 
-let theGraySpawnTimer = THE_GRAY_SPAWN_INTERVAL;
+let theGraySpawnTimer = THE_GRAY_BASE_SPAWN_INTERVAL;
+
+function getDirectorValues() {
+    const snapshot = typeof window.getZoneSnapshot === 'function' ? window.getZoneSnapshot() : null;
+    const contamination = snapshot?.metrics?.contamination ?? 100;
+    const dangerFactor = contamination / 100;
+    const spawnInterval = Math.max(
+        THE_GRAY_MIN_SPAWN_INTERVAL,
+        THE_GRAY_BASE_SPAWN_INTERVAL - (dangerFactor * 22)
+    );
+    const maxCount = THE_GRAY_BASE_MAX_COUNT + Math.floor(dangerFactor * 5);
+    return { spawnInterval, maxCount };
+}
 
 function countActiveTheGray() {
     return window.objects ? window.objects.filter(obj => obj.userData && obj.userData.isTheGray).length : 0;
@@ -24,7 +36,10 @@ function spawnOneTheGray() {
     const randomAngle = Math.random() * Math.PI * 2;
     const spawnX = playerPosition.x + Math.cos(randomAngle) * THE_GRAY_SPAWN_DISTANCE;
     const spawnZ = playerPosition.z + Math.sin(randomAngle) * THE_GRAY_SPAWN_DISTANCE;
-    const spawnPosition = new THREE.Vector3(spawnX, THE_GRAY_SPAWN_HEIGHT, spawnZ);
+    const terrainHeight = typeof window.getTerrainHeightAt === 'function'
+        ? window.getTerrainHeightAt(spawnX, spawnZ)
+        : 0;
+    const spawnPosition = new THREE.Vector3(spawnX, terrainHeight + THE_GRAY_SPAWN_HEIGHT, spawnZ);
 
     window.debugLog("Spawner: Attempting to spawn The-Gray at", spawnPosition);
     window.createTheGray(spawnPosition);
@@ -61,13 +76,14 @@ function despawnFarthestTheGray() {
 }
 
 function updateSpawner(delta) {
+    const director = getDirectorValues();
     theGraySpawnTimer -= delta;
     if (theGraySpawnTimer <= 0) {
-        theGraySpawnTimer = THE_GRAY_SPAWN_INTERVAL;
+        theGraySpawnTimer = director.spawnInterval;
         const currentGrayCount = countActiveTheGray();
         if (window.debugLog) window.debugLog("Spawner: Timer up! Current The-Gray count:", currentGrayCount);
 
-        if (currentGrayCount < THE_GRAY_MAX_COUNT) {
+        if (currentGrayCount < director.maxCount) {
             spawnOneTheGray();
         } else {
             despawnFarthestTheGray();

@@ -28,6 +28,7 @@ let antidotePressure = 0;
 let timeInSweetSpot = 0;
 let minigameFailTimer = 0;
 let isAimingAtPatch = false;
+window.rightMouseDown = false;
 
 // --- UI ELEMENT REFERENCES ---
 let interactionPromptElement;
@@ -159,6 +160,9 @@ function _completePatchApplication() {
     currentPatchTarget.userData.isStunned = true;
     currentPatchTarget.userData.stunTimer = 9999;
     currentPatchTarget.material.color.setHex(0xFFFF00);
+    if (typeof window.pushGameNotice === 'function') {
+        window.pushGameNotice('Patch secured. Administer antidote.', 'info');
+    }
     isApplyingPatch = false;
     patchApplyTimer = 0;
     if (subdueProgressElement) subdueProgressElement.style.display = 'none';
@@ -242,6 +246,9 @@ function _failAntidoteApplication() {
     target.userData.stunTimer = ANTIDOTE_FAIL_PENALTY_TIME;
     target.material.color.setHex(0xFF0000);
     _removePatchMesh(target);
+    if (typeof window.pushGameNotice === 'function') {
+        window.pushGameNotice('Antidote overload. Re-stabilize the target.', 'warning');
+    }
 }
 
 function _completeAntidoteApplication() {
@@ -254,6 +261,17 @@ function _completeAntidoteApplication() {
     currentAntidoteTarget.userData.isSubdued = true;
     currentAntidoteTarget.material.color.setHex(0x556B2F);
     _removePatchMesh(currentAntidoteTarget);
+    if (window.playerInstance && window.playerInstance.stats) {
+        window.playerInstance.stats.metal += 12;
+        window.playerInstance.stats.energy = Math.min(100, window.playerInstance.stats.energy + 8);
+        window.playerInstance.updateHUD();
+    }
+    if (typeof window.onTheGraySubdued === 'function') {
+        window.onTheGraySubdued();
+    }
+    if (typeof window.pushGameNotice === 'function') {
+        window.pushGameNotice('Gray subdued. Salvage recovered.', 'success');
+    }
 
     isApplyingAntidote = false;
     window.isApplyingAntidote = false;

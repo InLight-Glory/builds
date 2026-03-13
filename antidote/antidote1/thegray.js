@@ -14,6 +14,7 @@ const ALERT_DURATION = 7.0;
 const IDLE_SPEED_MULTIPLIER = 0.3;
 const IDLE_WANDER_RADIUS = 15.0;
 const IDLE_TARGET_TIMER = 6.0;
+const grayPool = [];
 
 function createTheGray(position) {
     // Ensure global dependencies are available
@@ -22,11 +23,14 @@ function createTheGray(position) {
         return null;
     }
     window.debugLog("Creating The-Gray at", position);
-    const grayGeometry = new THREE.CylinderGeometry(0.4, 0.4, 1.8, 16);
-    const grayMaterial = new THREE.MeshStandardMaterial({ color: 0x666666, roughness: 0.8 });
+    const grayGeometry = new THREE.CylinderGeometry(0.55, 0.35, 2.2, 18);
+    const grayMaterial = new THREE.MeshStandardMaterial({ color: 0x6f706f, roughness: 0.72, metalness: 0.08 });
     const theGray = new THREE.Mesh(grayGeometry, grayMaterial);
     theGray.position.copy(position);
-    theGray.position.y = 0.9;
+    const groundY = typeof window.getTerrainHeightAt === 'function'
+        ? window.getTerrainHeightAt(position.x, position.z)
+        : 0;
+    theGray.position.y = groundY + 1.1;
     theGray.castShadow = true;
     theGray.receiveShadow = true;
     theGray.name = "TheGray_" + Math.random().toString(36).substr(2, 5);
@@ -45,8 +49,48 @@ function createTheGray(position) {
         isSubdued: false,       // True when patch is successfully placed & minigame would start
         isBeingSubdued: false,  // True during the 'E' hold for patch placement
         isPatchPlaced: false,   // True when patch is visually on the Gray
-        subdueRectangle: null
+        subdueRectangle: null,
+        pulseOffset: Math.random() * Math.PI * 2
     };
+
+    const mantle = new THREE.Mesh(
+        new THREE.ConeGeometry(0.95, 1.7, 18, 1, true),
+        new THREE.MeshStandardMaterial({
+            color: 0x454c4b,
+            roughness: 0.9,
+            metalness: 0.02,
+            side: THREE.DoubleSide
+        })
+    );
+    mantle.position.y = 1.25;
+    mantle.castShadow = true;
+    theGray.add(mantle);
+
+    const core = new THREE.Mesh(
+        new THREE.OctahedronGeometry(0.28, 0),
+        new THREE.MeshStandardMaterial({
+            color: 0xaaf7ee,
+            emissive: 0x56cfc2,
+            emissiveIntensity: 0.75,
+            roughness: 0.2,
+            metalness: 0.12
+        })
+    );
+    core.position.set(0, 1.05, 0.2);
+    core.name = "GrayCore";
+    theGray.add(core);
+    theGray.userData.core = core;
+
+    for (let i = 0; i < 3; i++) {
+        const spine = new THREE.Mesh(
+            new THREE.ConeGeometry(0.12, 0.75, 6),
+            new THREE.MeshStandardMaterial({ color: 0x8fd0ca, emissive: 0x215f58, emissiveIntensity: 0.45, roughness: 0.45 })
+        );
+        spine.position.set((i - 1) * 0.22, 2.1 + i * 0.08, -0.05);
+        spine.rotation.x = Math.PI;
+        spine.castShadow = true;
+        theGray.add(spine);
+    }
 
     const hitPointGeometry = new THREE.SphereGeometry(0.2, 8, 8);
     const hitPointMaterial = new THREE.MeshStandardMaterial({ color: 0xff00ff });
@@ -66,7 +110,11 @@ function createTheGray(position) {
     }
 
     window.scene.add(theGray);
-    window.objects.push(theGray);
+    if (typeof window.registerWorldObject === 'function') {
+        window.registerWorldObject(theGray, { collidable: true, type: 'enemy' });
+    } else {
+        window.objects.push(theGray);
+    }
     return theGray;
 }
 
@@ -97,6 +145,48 @@ function addRandomHitPoint(theGray) {
     hitPoint.userData = { isHitPoint: true, parentGray: theGray, health: HIT_POINT_HEALTH };
     theGray.add(hitPoint);
     theGray.userData.hitPoints.push(hitPoint);
+}
+
+function clearHitPoints(theGray) {
+    if (!theGray || !theGray.userData || !Array.isArray(theGray.userData.hitPoints)) return;
+    theGray.userData.hitPoints.forEach((hp) => {
+        if (hp.parent) hp.parent.remove(hp);
+        if (hp.geometry) hp.geometry.dispose();
+        if (hp.material) hp.material.dispose();
+    });
+    theGray.userData.hitPoints = [];
+}
+
+function resetTheGrayFromPool(theGray, position) {
+    if (!theGray || !theGray.userData) return;
+    theGray.position.copy(position);
+    const groundY = typeof window.getTerrainHeightAt === 'function'
+        ? window.getTerrainHeightAt(position.x, position.z)
+        : 0;
+    theGray.position.y = groundY + 0.9;
+    theGray.visible = true;
+    theGray.userData.health = THE_GRAY_HEALTH;
+    theGray.userData.maxHealth = THE_GRAY_HEALTH;
+    theGray.userData.isStunned = false;
+    theGray.userData.stunTimer = 0;
+    theGray.userData.isSubdued = false;
+    theGray.userData.isBeingSubdued = false;
+    theGray.userData.isPatchPlaced = false;
+    theGray.userData.aiState = 'idle';
+    theGray.userData.alertTimer = 0;
+    theGray.userData.idleTarget = null;
+    theGray.userData.idleMoveTimer = 0;
+    if (theGray.material && theGray.userData.originalColor) {
+        theGray.material.color.copy(theGray.userData.originalColor);
+    }
+    if (theGray.userData.core && theGray.userData.core.material) {
+        theGray.userData.core.material.emissiveIntensity = 0.75;
+    }
+    clearHitPoints(theGray);
+    const numPoints = Math.floor(Math.random() * 5) + 3;
+    for (let i = 0; i < numPoints; i++) {
+        addRandomHitPoint(theGray);
+    }
 }
 
 // --- DAMAGE AND STUN LOGIC ---
@@ -142,9 +232,7 @@ function theGrayTakeDamage(damage, source) {
         this.material.color.copy(this.userData.originalColor).lerp(new THREE.Color(1, 0, 0), 1 - percent);
     }
     if (this.userData.health <= 0) {
-        if (this.parent) this.parent.remove(this);
-        if (this.geometry) this.geometry.dispose();
-        if (this.material) this.material.dispose();
+        removeTheGray(this);
     }
 }
 
@@ -226,6 +314,9 @@ function updateTheGray(delta) {
             if (object.userData.isSubdued || object.userData.isPatchPlaced) {
                 if (object.userData.isSubdued) object.material.color.setHex(0x556B2F); // Dark Olive - fully subdued for next game step
                 else if (object.userData.isPatchPlaced) object.material.color.setHex(0xFFFF00); // Yellow - patch on, ready for minigame
+                if (object.userData.core && object.userData.core.material) {
+                    object.userData.core.material.emissiveIntensity = object.userData.isSubdued ? 0.22 : 1.1;
+                }
                 // Make sure stun counter is hidden if patch is placed or subdued
                 if (object.userData.stunCounterMesh) updateStunCounterMesh(object);
                 return; // Immobile
@@ -242,6 +333,9 @@ function updateTheGray(delta) {
                     object.material.color.copy(object.userData.originalColor);
                     updateStunCounterMesh(object); // This will remove the counter
                     setTimeout(() => { addRandomHitPoint(object); }, 100); // Respawn hit point
+                }
+                if (object.userData.core && object.userData.core.material) {
+                    object.userData.core.material.emissiveIntensity = 1.2;
                 }
                 return; // Skip AI movement/turning if stunned
             }
@@ -313,7 +407,7 @@ function updateTheGray(delta) {
                             const strength = (SEPARATION_RADIUS - distance) / SEPARATION_RADIUS;
                             separationForce.add(vecFromOther.normalize().multiplyScalar(strength * SEPARATION_STRENGTH));
                         }
-                    } else if (!(otherObject.userData && otherObject.userData.isTheGray) && otherObject.name !== "GroundPlane" && !(otherObject.userData && otherObject.userData.isHitPoint) && !(otherObject.userData && otherObject.userData.isSubdueRect)) {
+                    } else if (!(otherObject.userData && otherObject.userData.isTheGray) && !(otherObject.userData && otherObject.userData.isTerrainChunk) && !(otherObject.userData && otherObject.userData.isHitPoint) && !(otherObject.userData && otherObject.userData.isSubdueRect)) {
                          if (distSq < AVOIDANCE_RADIUS_SQ && distSq > 0.01) {
                             const distance = Math.sqrt(distSq);
                             const strength = (AVOIDANCE_RADIUS - distance) / AVOIDANCE_RADIUS;
@@ -345,10 +439,54 @@ function updateTheGray(delta) {
                      object.lookAt(lookTarget.x, object.position.y, lookTarget.z);
                  }
             }
+
+            if (object.userData.core && object.userData.core.material) {
+                object.userData.core.rotation.y += delta * 1.8;
+                object.userData.core.position.y = 1.05 + Math.sin(performance.now() * 0.003 + object.userData.pulseOffset) * 0.08;
+                object.userData.core.material.emissiveIntensity = 0.65 + Math.sin(performance.now() * 0.004 + object.userData.pulseOffset) * 0.18;
+            }
+
+            if (typeof window.getTerrainHeightAt === 'function') {
+                object.position.y = window.getTerrainHeightAt(object.position.x, object.position.z) + 1.1;
+            }
         }
     });
 }
 
-window.createTheGray = createTheGray;
+function removeTheGray(theGray) {
+    if (!theGray || !window.scene || !window.objects) return;
+    if (theGray.parent) {
+        theGray.parent.remove(theGray);
+    }
+    if (typeof window.unregisterWorldObject === 'function') {
+        window.unregisterWorldObject(theGray);
+    } else {
+        const index = window.objects.indexOf(theGray);
+        if (index >= 0) {
+            window.objects.splice(index, 1);
+        }
+    }
+    theGray.visible = false;
+    grayPool.push(theGray);
+}
+
+function createOrAcquireTheGray(position) {
+    const pooled = grayPool.pop();
+    if (pooled) {
+        resetTheGrayFromPool(pooled, position);
+        attachDamageHandlers(pooled);
+        window.scene.add(pooled);
+        if (typeof window.registerWorldObject === 'function') {
+            window.registerWorldObject(pooled, { collidable: true, type: 'enemy' });
+        } else {
+            window.objects.push(pooled);
+        }
+        return pooled;
+    }
+    return createTheGray(position);
+}
+
+window.createTheGray = createOrAcquireTheGray;
 window.updateTheGray = updateTheGray;
 window.updateStunCounterMesh = updateStunCounterMesh;
+window.removeTheGray = removeTheGray;

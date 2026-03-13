@@ -9,6 +9,9 @@
 
 import { shrinkTree } from './tree.js';
 import { collectPickup } from './pickup.js';
+import { checkFloorCollision, checkWallCollision, updateColliderFromPose } from './collisions.js';
+
+const SHOOT_DAMAGE = 25;
 
 // --- Player Class ---
 // Using a class organizes all related variables and functions, preventing global scope pollution
@@ -19,6 +22,7 @@ class Player {
         this.camera = camera;
         this.scene = scene;
         this.objects = window.objects; // Reference to the global list of collidable objects
+        this.getObjects = () => (typeof window.getCollidableObjects === 'function' ? window.getCollidableObjects() : window.objects);
         this.raycaster = new THREE.Raycaster();
 
         // Constants for easy tweaking
@@ -34,6 +38,8 @@ class Player {
         this.velocity = new THREE.Vector3();
         this.onGround = false;
         this.canJump = true;
+        this.walkCycle = 0;
+        this.viewKick = 0;
 
         // Input state flags
         this.input = {
@@ -51,19 +57,28 @@ class Player {
             health: 100,
             maxHealth: 100,
             wood: 500,
-            metal: 200
+            metal: 200,
+            water: 50,
+            energy: 50
         };
 
         // --- Initialization ---
         // Set up PointerLockControls for FPS view
         this.controls = new THREE.PointerLockControls(this.camera, document.body);
         this.scene.add(this.controls.getObject());
+        window.rightMouseDown = false;
+        this.viewModel = this.createViewModel();
+        this.camera.add(this.viewModel);
         
         // Expose a reference to the controls for other scripts (like main.js)
         window.controls = this.controls;
 
         // Create the player's collision bounding box
         this.collider = new THREE.Box3();
+        this.body = {
+            size: new THREE.Vector3(this.WIDTH, this.HEIGHT, this.WIDTH),
+            centerOffset: new THREE.Vector3(0, -this.HEIGHT / 2, 0)
+        };
         this.updateCollider();
 
         // Set up all event listeners for input
@@ -107,10 +122,19 @@ class Player {
 
         switch (event.code) {
             case 'KeyW': this.input.forward = true; break;
-            case 'KeyA': this.input.right = true; break;
+            case 'KeyA': this.input.left = true; break;
             case 'KeyS': this.input.backward = true; break;
-            case 'KeyD': this.input.left = true; break;
+            case 'KeyD': this.input.right = true; break;
             case 'ShiftLeft': this.input.sprint = true; break;
+            case 'KeyR':
+                if (typeof window.requestRestorationPulse === 'function') {
+                    const result = window.requestRestorationPulse(this.stats);
+                    if (result && result.message) {
+                        window.lastInteractionMessage = result.message;
+                    }
+                    this.updateHUD();
+                }
+                break;
             case 'Space':
                 if (this.canJump && this.onGround) {
                     this.velocity.y = this.JUMP_VELOCITY;
@@ -129,9 +153,9 @@ class Player {
     onKeyUp(event) {
         switch (event.code) {
             case 'KeyW': this.input.forward = false; break;
-            case 'KeyA': this.input.right = false; break;
+            case 'KeyA': this.input.left = false; break;
             case 'KeyS': this.input.backward = false; break;
-            case 'KeyD': this.input.left = false; break;
+            case 'KeyD': this.input.right = false; break;
             case 'ShiftLeft': this.input.sprint = false; break;
             case 'KeyE':
                 if (typeof window.requestPatchApplicationCancel === 'function') {
@@ -145,15 +169,28 @@ class Player {
     onMouseDown(event) {
         if (!this.controls.isLocked || window.isMapViewActive) return;
 
+        if (window.unitSystem && typeof window.unitSystem.handlePointerDown === 'function') {
+            const consumed = window.unitSystem.handlePointerDown(event, {
+                camera: this.camera,
+                isMapView: false
+            });
+            if (consumed) {
+                event.preventDefault();
+                return;
+            }
+        }
+
         if (event.button === 0) { // Left Click
             this.handleShoot();
         } else if (event.button === 2) { // Right Click
             event.preventDefault();
             this.input.right_mouse = true;
-            // Logic for antidote minigame
+            window.rightMouseDown = true;
             if (typeof window.applyAntidotePulse === 'function') {
-                // This part requires a raycast to find the target, similar to handleShoot
-                // For simplicity, this is kept brief. The full logic would be here.
+                const patchTarget = this.findPatchTarget();
+                if (patchTarget) {
+                    window.applyAntidotePulse(patchTarget);
+                }
             }
         }
     }
@@ -161,6 +198,7 @@ class Player {
     onMouseUp(event) {
         if (event.button === 2) {
             this.input.right_mouse = false;
+            window.rightMouseDown = false;
             if (typeof window.requestAntidoteStop === 'function') {
                 window.requestAntidoteStop();
             }
@@ -202,7 +240,7 @@ class Player {
             moveVector.add(cameraDirection.clone().multiplyScalar(moveDirection.z));
         }
         if (moveDirection.x !== 0) {
-            const cameraRight = new THREE.Vector3().crossVectors(this.camera.up, cameraDirection);
+            const cameraRight = new THREE.Vector3().crossVectors(cameraDirection, this.camera.up);
             moveVector.add(cameraRight.multiplyScalar(moveDirection.x));
         }
 
@@ -215,23 +253,48 @@ class Player {
         this.velocity.z = moveVector.z;
         
         // --- Collision Detection ---
+        this.objects = this.getObjects() || [];
         const playerPosition = this.controls.getObject().position;
 
         // Move and check X axis
         playerPosition.x += this.velocity.x * delta;
         this.updateCollider();
-        this.checkCollisions('x');
+        checkWallCollision(this.collider, this.objects, {
+            axis: 'x',
+            position: playerPosition,
+            velocity: this.velocity,
+            body: this.body,
+            self: this.controls.getObject(),
+            collideWithEnemies: true,
+            getGroundHeight: window.getTerrainHeightAt
+        });
 
         // Move and check Z axis
         playerPosition.z += this.velocity.z * delta;
         this.updateCollider();
-        this.checkCollisions('z');
+        checkWallCollision(this.collider, this.objects, {
+            axis: 'z',
+            position: playerPosition,
+            velocity: this.velocity,
+            body: this.body,
+            self: this.controls.getObject(),
+            collideWithEnemies: true,
+            getGroundHeight: window.getTerrainHeightAt
+        });
         
         // Move and check Y axis (gravity/jumping)
         this.onGround = false;
         playerPosition.y += this.velocity.y * delta;
         this.updateCollider();
-        this.checkCollisions('y');
+        const floorHit = checkFloorCollision(this.collider, this.objects, {
+            position: playerPosition,
+            velocity: this.velocity,
+            body: this.body,
+            self: this.controls.getObject(),
+            collideWithEnemies: true,
+            getGroundHeight: window.getTerrainHeightAt
+        });
+        this.onGround = !!floorHit.hitGround;
 
         // Check if on ground after all collisions are resolved
         if (this.onGround) {
@@ -241,65 +304,98 @@ class Player {
 
         // Check for pickups
         this.checkPickupCollisions();
+        this.updateViewModel(delta, moveVector.length());
+    }
+
+    createViewModel() {
+        const rig = new THREE.Group();
+        rig.position.set(0.55, -0.62, -1.05);
+
+        const body = new THREE.Mesh(
+            new THREE.BoxGeometry(0.24, 0.22, 0.95),
+            new THREE.MeshStandardMaterial({
+                color: 0x2b3531,
+                roughness: 0.55,
+                metalness: 0.52
+            })
+        );
+        body.rotation.y = -0.12;
+        rig.add(body);
+
+        const barrel = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.04, 0.055, 0.8, 12),
+            new THREE.MeshStandardMaterial({
+                color: 0xa4b5ac,
+                roughness: 0.3,
+                metalness: 0.78
+            })
+        );
+        barrel.rotation.z = Math.PI / 2;
+        barrel.position.set(0.02, 0.02, -0.68);
+        rig.add(barrel);
+
+        const vial = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.055, 0.055, 0.32, 10),
+            new THREE.MeshStandardMaterial({
+                color: 0x7bffe1,
+                emissive: 0x3bcab1,
+                emissiveIntensity: 0.85,
+                transparent: true,
+                opacity: 0.82,
+                roughness: 0.12,
+                metalness: 0.18
+            })
+        );
+        vial.position.set(-0.05, 0.12, -0.1);
+        rig.add(vial);
+        rig.userData.vial = vial;
+
+        const grip = new THREE.Mesh(
+            new THREE.BoxGeometry(0.16, 0.4, 0.2),
+            new THREE.MeshStandardMaterial({
+                color: 0x584836,
+                roughness: 0.88,
+                metalness: 0.05
+            })
+        );
+        grip.position.set(-0.04, -0.28, 0.1);
+        grip.rotation.z = 0.2;
+        rig.add(grip);
+
+        return rig;
+    }
+
+    updateViewModel(delta, movementMagnitude) {
+        if (!this.viewModel) return;
+        const isMoving = movementMagnitude > 0.05 && this.onGround;
+        if (isMoving) {
+            this.walkCycle += delta * (this.input.sprint ? 11 : 7);
+        }
+
+        const bobX = isMoving ? Math.sin(this.walkCycle) * 0.018 : 0;
+        const bobY = isMoving ? Math.abs(Math.cos(this.walkCycle * 0.5)) * 0.025 : 0;
+        this.viewKick = Math.max(0, this.viewKick - delta * 5.5);
+
+        this.viewModel.position.x = 0.55 + bobX;
+        this.viewModel.position.y = -0.62 - bobY + this.viewKick * 0.05;
+        this.viewModel.rotation.z = -0.06 + bobX * 1.6 - this.viewKick * 0.12;
+        this.viewModel.rotation.x = -0.08 + bobY * 0.6 + this.viewKick * 0.18;
+
+        if (this.viewModel.userData.vial) {
+            this.viewModel.userData.vial.material.emissiveIntensity = 0.7 + Math.sin(performance.now() * 0.004) * 0.18;
+        }
     }
 
     // --- Collision Logic ---
     updateCollider() {
         const pos = this.controls.getObject().position;
-        this.collider.setFromCenterAndSize(
-            new THREE.Vector3(pos.x, pos.y - this.HEIGHT / 2, pos.z),
-            new THREE.Vector3(this.WIDTH, this.HEIGHT, this.WIDTH)
-        );
-    }
-    
-    checkCollisions(axis) {
-        for (const object of this.objects) {
-            // CORRECTED: Added a check to ignore the object named "Ground" for this loop.
-            if (!object.geometry || object.name === "Ground" || object === this.controls.getObject() || (object.userData && (object.userData.isTheGray || object.userData.isPickup))) {
-                continue;
-            }
-
-            const objectAABB = new THREE.Box3().setFromObject(object);
-            if (this.collider.intersectsBox(objectAABB)) {
-                const playerPosition = this.controls.getObject().position;
-                const overlap = new THREE.Vector3();
-                this.collider.getCenter(overlap).sub(objectAABB.getCenter(new THREE.Vector3()));
-                
-                if (axis === 'y') {
-                    // Falling onto something
-                    if (this.velocity.y < 0) {
-                        playerPosition.y = objectAABB.max.y + this.HEIGHT;
-                        this.onGround = true;
-                    } 
-                    // Jumping into something
-                    else if (this.velocity.y > 0) {
-                        playerPosition.y = objectAABB.min.y - 0.01;
-                    }
-                    this.velocity.y = 0;
-                } else {
-                    // Horizontal collision
-                    const overlapX = (this.collider.max.x - this.collider.min.x) / 2 + (objectAABB.max.x - objectAABB.min.x) / 2 - Math.abs(overlap.x);
-                    const overlapZ = (this.collider.max.z - this.collider.min.z) / 2 + (objectAABB.max.z - objectAABB.min.z) / 2 - Math.abs(overlap.z);
-
-                    if (overlapX < overlapZ) {
-                        if (axis === 'x') playerPosition.x += overlap.x > 0 ? overlapX : -overlapX;
-                    } else {
-                        if (axis === 'z') playerPosition.z += overlap.z > 0 ? overlapZ : -overlapZ;
-                    }
-                }
-                this.updateCollider(); // Update collider after position change
-            }
-        }
-        
-        // This dedicated ground check at y=0 remains.
-        if (axis === 'y' && this.collider.min.y < 0) {
-            this.controls.getObject().position.y = this.HEIGHT;
-            this.onGround = true;
-        }
+        updateColliderFromPose(this.collider, pos, this.body.size, this.body.centerOffset);
     }
 
     // --- Interaction Logic ---
     handleShoot() {
+        this.viewKick = Math.min(1, this.viewKick + 0.65);
+        this.objects = this.getObjects() || [];
         this.raycaster.setFromCamera({ x: 0, y: 0 }, this.camera);
         const intersects = this.raycaster.intersectObjects(this.objects, true);
         if (intersects.length > 0) {
@@ -327,6 +423,19 @@ class Player {
         }
     }
 
+    findPatchTarget() {
+        this.objects = this.getObjects() || [];
+        this.raycaster.setFromCamera({ x: 0, y: 0 }, this.camera);
+        const intersects = this.raycaster.intersectObjects(this.objects, true);
+        for (const hit of intersects) {
+            const obj = hit.object;
+            if (obj && obj.userData && obj.userData.isSubdueRect && obj.userData.parentGray) {
+                return obj.userData.parentGray;
+            }
+        }
+        return null;
+    }
+
     handleInteraction() {
         const playerPosition = this.controls.getObject().position;
         let closestBuilding = null;
@@ -342,10 +451,24 @@ class Player {
             }
         }
 
-        if (closestBuilding && closestBuilding.state === 'blueprint') {
+        if (closestBuilding) {
             if (typeof closestBuilding.depositResources === 'function') {
-                closestBuilding.depositResources(this.stats); // Pass player stats/inventory
+                closestBuilding.depositResources(this.stats);
                 this.updateHUD();
+            }
+
+            if (closestBuilding.state === 'complete' && typeof closestBuilding.queueUnit === 'function') {
+                let queued = false;
+                if (closestBuilding.type === 'Base') {
+                    const typeToQueue = this.input.sprint ? 'scout' : 'helper';
+                    queued = closestBuilding.queueUnit(typeToQueue);
+                } else if (closestBuilding.type === 'Barracks') {
+                    queued = closestBuilding.queueUnit('soldier');
+                }
+
+                if (queued && typeof window.pushGameNotice === 'function') {
+                    window.pushGameNotice(`${closestBuilding.type} accepted production order.`, 'success');
+                }
             }
         } else {
             // Fallback to curing mechanic if no building is in range
@@ -356,6 +479,7 @@ class Player {
     }
 
     checkPickupCollisions() {
+        this.objects = this.getObjects() || [];
         this.updateCollider();
         for (let i = this.objects.length - 1; i >= 0; i--) {
             const object = this.objects[i];
@@ -373,8 +497,12 @@ class Player {
     updateHUD() {
         const woodElement = document.getElementById('hud-wood');
         const metalElement = document.getElementById('hud-metal');
+        const waterElement = document.getElementById('hud-water');
+        const energyElement = document.getElementById('hud-energy');
         if (woodElement) woodElement.textContent = this.stats.wood;
         if (metalElement) metalElement.textContent = this.stats.metal;
+        if (waterElement) waterElement.textContent = this.stats.water;
+        if (energyElement) energyElement.textContent = this.stats.energy;
         // Add other HUD elements here (health, ammo, etc.)
     }
 }

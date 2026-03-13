@@ -1,0 +1,29 @@
+[
+  {
+    "id": "rare_air_bloom",
+    "resource_type": "air",
+    "amount": 240,
+    "duration_seconds": 240,
+    "spawn_radius_min": 120,
+    "spawn_radius_max": 620,
+    "rarity_weight": 1.0
+  },
+  {
+    "id": "volatile_oil_spill",
+    "resource_type": "oil",
+    "amount": 200,
+    "duration_seconds": 180,
+    "spawn_radius_min": 160,
+    "spawn_radius_max": 700,
+    "rarity_weight": 0.7
+  },
+  {
+    "id": "metal_rain",
+    "resource_type": "metals",
+    "amount": 320,
+    "duration_seconds": 300,
+    "spawn_radius_min": 220,
+    "spawn_radius_max": 760,
+    "rarity_weight": 0.5
+  }
+]

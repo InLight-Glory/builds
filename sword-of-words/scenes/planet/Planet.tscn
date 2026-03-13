@@ -1,0 +1,35 @@
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scripts/planet/PlanetNode.cs" id="1"]
+[ext_resource type="Script" path="res://scripts/planet/PlanetGravityField.cs" id="2"]
+[ext_resource type="Script" path="res://scripts/planet/PlanetResourcePool.cs" id="3"]
+
+[sub_resource type="SphereMesh" id="SphereMesh_1"]
+radius = 1.0
+height = 2.0
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_surface"]
+radius = 1.0
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_gravity"]
+radius = 2.0
+
+[node name="Planet" type="Node3D"]
+script = ExtResource("1")
+
+[node name="SurfaceMesh" type="MeshInstance3D" parent="."]
+mesh = SubResource("SphereMesh_1")
+
+[node name="SurfaceBody" type="StaticBody3D" parent="."]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="SurfaceBody"]
+shape = SubResource("SphereShape3D_surface")
+
+[node name="GravityField" type="Area3D" parent="."]
+script = ExtResource("2")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="GravityField"]
+shape = SubResource("SphereShape3D_gravity")
+
+[node name="ResourcePool" type="Node" parent="."]
+script = ExtResource("3")

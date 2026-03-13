@@ -1,0 +1,39 @@
+[gd_scene load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://scripts/galaxy/GalaxyManager.cs" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/player/Player.tscn" id="2"]
+[ext_resource type="PackedScene" path="res://scenes/planet/Planet.tscn" id="3"]
+[ext_resource type="PackedScene" path="res://scenes/ui/HUD.tscn" id="4"]
+[ext_resource type="Script" path="res://scripts/events/TimeEventManager.cs" id="5"]
+[ext_resource type="Script" path="res://scripts/galaxy/SectorManager.cs" id="6"]
+
+[sub_resource type="Environment" id="Environment_1"]
+background_mode = 2
+ambient_light_source = 3
+ambient_light_energy = 0.9
+
+[node name="Main" type="Node3D"]
+script = ExtResource("1")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_1")
+
+[node name="SunLight" type="DirectionalLight3D" parent="."]
+rotation_degrees = Vector3(-55, 35, 0)
+light_energy = 1.2
+
+[node name="Player" parent="." instance=ExtResource("2")]
+
+[node name="PlanetA" parent="." instance=ExtResource("3")]
+
+[node name="PlanetB" parent="." instance=ExtResource("3")]
+
+[node name="PlanetC" parent="." instance=ExtResource("3")]
+
+[node name="HUD" parent="." instance=ExtResource("4")]
+
+[node name="TimeEventManager" type="Node" parent="."]
+script = ExtResource("5")
+
+[node name="SectorManager" type="Node" parent="."]
+script = ExtResource("6")
