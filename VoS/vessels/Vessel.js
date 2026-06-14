@@ -48,46 +48,209 @@ export class Vessel {
         this.mesh = new THREE.Group();
         this.mesh.position.y = 1.5 * size;
 
-        const bodyMaterial = new THREE.MeshStandardMaterial({ color: color, flatShading: true });
-        const headMaterial = new THREE.MeshStandardMaterial({ color: 0xffe0bd, flatShading: true });
+        const s = size; // Shorthand
+        const bodyMat = new THREE.MeshStandardMaterial({ color, flatShading: true });
+        const skinMat = new THREE.MeshStandardMaterial({ color: 0xffe0bd, flatShading: true });
+        const darkMat = new THREE.MeshStandardMaterial({ color: 0x2d2d2d, flatShading: true });
+        const accentColor = new THREE.Color(color).offsetHSL(0, 0, -0.15);
+        const accentMat = new THREE.MeshStandardMaterial({ color: accentColor, flatShading: true });
+        const metalMat = new THREE.MeshStandardMaterial({ color: 0xaaaaaa, metalness: 0.6, roughness: 0.3, flatShading: true });
+        const glowMat = new THREE.MeshStandardMaterial({ color, emissive: color, emissiveIntensity: 0.4, flatShading: true });
 
-        // --- Model creation based on type ---
-        let torsoGeo, headGeo, armGeo, legGeo;
         if (type === 'guardian') {
-            torsoGeo = new THREE.BoxGeometry(1.4 * size, 1.5 * size, 0.8 * size);
-            headGeo = new THREE.IcosahedronGeometry(0.6 * size, 0);
-            armGeo = new THREE.BoxGeometry(0.4 * size, 1.4 * size, 0.4 * size);
-            legGeo = new THREE.BoxGeometry(0.5 * size, 1.5 * size, 0.5 * size);
-        } else { // 'marksman' or default
-            torsoGeo = new THREE.BoxGeometry(0.8 * size, 1.6 * size, 0.5 * size);
-            headGeo = new THREE.IcosahedronGeometry(0.5 * size, 0);
-            armGeo = new THREE.BoxGeometry(0.2 * size, 1.5 * size, 0.2 * size);
-            legGeo = new THREE.BoxGeometry(0.25 * size, 1.7 * size, 0.25 * size);
+            // === GUARDIAN — Heavy, armored, wide stance ===
+
+            // Torso — broad chest plate
+            const torso = new THREE.Mesh(new THREE.BoxGeometry(1.6 * s, 1.4 * s, 0.9 * s), bodyMat);
+            torso.castShadow = true;
+            this.mesh.add(torso);
+
+            // Chest armor plate — layered on front
+            const chestPlate = new THREE.Mesh(new THREE.BoxGeometry(1.3 * s, 1.0 * s, 0.15 * s), metalMat);
+            chestPlate.position.set(0, 0.1 * s, 0.45 * s);
+            this.mesh.add(chestPlate);
+
+            // Belt
+            const belt = new THREE.Mesh(new THREE.BoxGeometry(1.65 * s, 0.2 * s, 0.95 * s), darkMat);
+            belt.position.y = -0.6 * s;
+            this.mesh.add(belt);
+
+            // Belt buckle
+            const buckle = new THREE.Mesh(new THREE.BoxGeometry(0.25 * s, 0.25 * s, 0.1 * s), glowMat);
+            buckle.position.set(0, -0.6 * s, 0.5 * s);
+            this.mesh.add(buckle);
+
+            // Shoulder pads — large pauldrons
+            [[-1.05, 0.55], [1.05, 0.55]].forEach(([ox, oy]) => {
+                const pad = new THREE.Mesh(new THREE.BoxGeometry(0.6 * s, 0.35 * s, 0.7 * s), metalMat);
+                pad.position.set(ox * s, oy * s, 0);
+                pad.castShadow = true;
+                this.mesh.add(pad);
+                // Spike on top of pauldron
+                const spike = new THREE.Mesh(new THREE.ConeGeometry(0.12 * s, 0.35 * s, 4), metalMat);
+                spike.position.set(ox * s, (oy + 0.3) * s, 0);
+                this.mesh.add(spike);
+            });
+
+            // Arms — thick armored
+            [[-0.95, -0.15], [0.95, -0.15]].forEach(([ox, oy]) => {
+                // Upper arm
+                const upper = new THREE.Mesh(new THREE.BoxGeometry(0.45 * s, 0.7 * s, 0.45 * s), bodyMat);
+                upper.position.set(ox * s, oy * s, 0);
+                upper.castShadow = true;
+                this.mesh.add(upper);
+                // Forearm with gauntlet
+                const forearm = new THREE.Mesh(new THREE.BoxGeometry(0.5 * s, 0.65 * s, 0.5 * s), accentMat);
+                forearm.position.set(ox * s, (oy - 0.7) * s, 0);
+                forearm.castShadow = true;
+                this.mesh.add(forearm);
+                // Fist
+                const fist = new THREE.Mesh(new THREE.BoxGeometry(0.3 * s, 0.25 * s, 0.3 * s), skinMat);
+                fist.position.set(ox * s, (oy - 1.1) * s, 0);
+                this.mesh.add(fist);
+            });
+
+            // Legs — armored greaves
+            [[-0.4, -1.5], [0.4, -1.5]].forEach(([ox, oy]) => {
+                // Thigh
+                const thigh = new THREE.Mesh(new THREE.BoxGeometry(0.5 * s, 0.8 * s, 0.5 * s), accentMat);
+                thigh.position.set(ox * s, oy * s, 0);
+                thigh.castShadow = true;
+                this.mesh.add(thigh);
+                // Greave (shin guard)
+                const greave = new THREE.Mesh(new THREE.BoxGeometry(0.55 * s, 0.75 * s, 0.55 * s), metalMat);
+                greave.position.set(ox * s, (oy - 0.75) * s, 0);
+                greave.castShadow = true;
+                this.mesh.add(greave);
+                // Boot
+                const boot = new THREE.Mesh(new THREE.BoxGeometry(0.45 * s, 0.3 * s, 0.7 * s), darkMat);
+                boot.position.set(ox * s, (oy - 1.3) * s, 0.1 * s);
+                this.mesh.add(boot);
+            });
+
+            // Head — helmet with visor slit
+            const helmet = new THREE.Mesh(new THREE.BoxGeometry(0.85 * s, 0.8 * s, 0.85 * s), metalMat);
+            helmet.position.y = 1.15 * s;
+            helmet.castShadow = true;
+            this.mesh.add(helmet);
+            // Visor slit — dark horizontal strip
+            const visor = new THREE.Mesh(new THREE.BoxGeometry(0.6 * s, 0.12 * s, 0.1 * s), new THREE.MeshBasicMaterial({ color: 0x00ffff }));
+            visor.position.set(0, 1.1 * s, 0.44 * s);
+            this.mesh.add(visor);
+            // Helmet crest
+            const crest = new THREE.Mesh(new THREE.BoxGeometry(0.1 * s, 0.45 * s, 0.65 * s), bodyMat);
+            crest.position.set(0, 1.6 * s, 0);
+            this.mesh.add(crest);
+
+            // Shield — left hand
+            const shield = new THREE.Mesh(new THREE.BoxGeometry(0.12 * s, 1.1 * s, 0.8 * s), bodyMat);
+            shield.position.set(-1.35 * s, -0.3 * s, 0.2 * s);
+            shield.castShadow = true;
+            this.mesh.add(shield);
+            // Shield emblem
+            const emblem = new THREE.Mesh(new THREE.IcosahedronGeometry(0.18 * s, 0), glowMat);
+            emblem.position.set(-1.42 * s, -0.15 * s, 0.2 * s);
+            this.mesh.add(emblem);
+
+        } else {
+            // === MARKSMAN — Lean, agile, ranged weapon ===
+
+            // Torso — slimmer, layered tunic
+            const torso = new THREE.Mesh(new THREE.BoxGeometry(0.9 * s, 1.5 * s, 0.55 * s), bodyMat);
+            torso.castShadow = true;
+            this.mesh.add(torso);
+
+            // Chest strap / bandolier — diagonal
+            const strap = new THREE.Mesh(new THREE.BoxGeometry(0.15 * s, 1.5 * s, 0.12 * s), darkMat);
+            strap.position.set(-0.15 * s, 0, 0.3 * s);
+            strap.rotation.z = 0.4;
+            this.mesh.add(strap);
+
+            // Belt
+            const belt = new THREE.Mesh(new THREE.BoxGeometry(0.95 * s, 0.15 * s, 0.6 * s), darkMat);
+            belt.position.y = -0.65 * s;
+            this.mesh.add(belt);
+
+            // Belt pouch
+            const pouch = new THREE.Mesh(new THREE.BoxGeometry(0.2 * s, 0.2 * s, 0.15 * s), accentMat);
+            pouch.position.set(0.4 * s, -0.65 * s, 0.35 * s);
+            this.mesh.add(pouch);
+
+            // Shoulder pads — smaller, asymmetric
+            const leftPad = new THREE.Mesh(new THREE.BoxGeometry(0.4 * s, 0.2 * s, 0.45 * s), accentMat);
+            leftPad.position.set(-0.65 * s, 0.65 * s, 0);
+            leftPad.castShadow = true;
+            this.mesh.add(leftPad);
+            // Right shoulder — no pad (shooting arm)
+
+            // Arms
+            [[-0.65, 0], [0.65, 0]].forEach(([ox, oy]) => {
+                const upper = new THREE.Mesh(new THREE.BoxGeometry(0.25 * s, 0.7 * s, 0.25 * s), bodyMat);
+                upper.position.set(ox * s, oy * s, 0);
+                upper.castShadow = true;
+                this.mesh.add(upper);
+                // Forearm — wrapped
+                const forearm = new THREE.Mesh(new THREE.BoxGeometry(0.22 * s, 0.65 * s, 0.22 * s), accentMat);
+                forearm.position.set(ox * s, (oy - 0.7) * s, 0);
+                this.mesh.add(forearm);
+                // Hand
+                const hand = new THREE.Mesh(new THREE.BoxGeometry(0.18 * s, 0.18 * s, 0.18 * s), skinMat);
+                hand.position.set(ox * s, (oy - 1.1) * s, 0);
+                this.mesh.add(hand);
+            });
+
+            // Legs — lean, with knee guards
+            [[-0.25, -1.4], [0.25, -1.4]].forEach(([ox, oy]) => {
+                const thigh = new THREE.Mesh(new THREE.BoxGeometry(0.3 * s, 0.85 * s, 0.3 * s), accentMat);
+                thigh.position.set(ox * s, oy * s, 0);
+                thigh.castShadow = true;
+                this.mesh.add(thigh);
+                // Knee guard
+                const knee = new THREE.Mesh(new THREE.BoxGeometry(0.2 * s, 0.15 * s, 0.15 * s), metalMat);
+                knee.position.set(ox * s, (oy - 0.35) * s, 0.2 * s);
+                this.mesh.add(knee);
+                // Shin
+                const shin = new THREE.Mesh(new THREE.BoxGeometry(0.28 * s, 0.7 * s, 0.28 * s), bodyMat);
+                shin.position.set(ox * s, (oy - 0.8) * s, 0);
+                this.mesh.add(shin);
+                // Boot
+                const boot = new THREE.Mesh(new THREE.BoxGeometry(0.25 * s, 0.25 * s, 0.45 * s), darkMat);
+                boot.position.set(ox * s, (oy - 1.35) * s, 0.08 * s);
+                this.mesh.add(boot);
+            });
+
+            // Head — hood/cowl
+            const head = new THREE.Mesh(new THREE.BoxGeometry(0.55 * s, 0.6 * s, 0.6 * s), skinMat);
+            head.position.y = 1.15 * s;
+            head.castShadow = true;
+            this.mesh.add(head);
+            // Hood
+            const hood = new THREE.Mesh(new THREE.BoxGeometry(0.7 * s, 0.5 * s, 0.7 * s), accentMat);
+            hood.position.set(0, 1.35 * s, -0.05 * s);
+            this.mesh.add(hood);
+            // Eyes — two glowing dots
+            [[-0.15, 1.1, 0.32], [0.15, 1.1, 0.32]].forEach(([ex, ey, ez]) => {
+                const eye = new THREE.Mesh(new THREE.SphereGeometry(0.06 * s, 6, 6), glowMat);
+                eye.position.set(ex * s, ey * s, ez * s);
+                this.mesh.add(eye);
+            });
+
+            // Weapon — longbow or rifle shape on back + held crossbow
+            // Back weapon (slung)
+            const bowStave = new THREE.Mesh(new THREE.CylinderGeometry(0.04 * s, 0.04 * s, 2.0 * s, 4), darkMat);
+            bowStave.position.set(0.15 * s, 0.3 * s, -0.35 * s);
+            bowStave.rotation.z = 0.2;
+            this.mesh.add(bowStave);
+
+            // Held weapon — small crossbow/pistol in right hand
+            const gunBody = new THREE.Mesh(new THREE.BoxGeometry(0.12 * s, 0.12 * s, 0.5 * s), metalMat);
+            gunBody.position.set(0.65 * s, -1.0 * s, 0.25 * s);
+            this.mesh.add(gunBody);
+            const gunBarrel = new THREE.Mesh(new THREE.CylinderGeometry(0.03 * s, 0.03 * s, 0.4 * s, 4), darkMat);
+            gunBarrel.rotation.x = Math.PI / 2;
+            gunBarrel.position.set(0.65 * s, -0.95 * s, 0.5 * s);
+            this.mesh.add(gunBarrel);
         }
-        const torso = new THREE.Mesh(torsoGeo, bodyMaterial);
-        torso.position.y = 0;
-        torso.castShadow = true;
-        this.mesh.add(torso);
-        const head = new THREE.Mesh(headGeo, headMaterial);
-        head.position.y = 1.25 * size;
-        head.castShadow = true;
-        this.mesh.add(head);
-        const leftArm = new THREE.Mesh(armGeo, bodyMaterial);
-        leftArm.position.set(-0.75 * size, 0.1 * size, 0);
-        leftArm.castShadow = true;
-        this.mesh.add(leftArm);
-        const rightArm = new THREE.Mesh(armGeo, bodyMaterial);
-        rightArm.position.set(0.75 * size, 0.1 * size, 0);
-        rightArm.castShadow = true;
-        this.mesh.add(rightArm);
-        const leftLeg = new THREE.Mesh(legGeo, bodyMaterial);
-        leftLeg.position.set(-0.3 * size, -1.5 * size, 0);
-        leftLeg.castShadow = true;
-        this.mesh.add(leftLeg);
-        const rightLeg = new THREE.Mesh(legGeo, bodyMaterial);
-        rightLeg.position.set(0.3 * size, -1.5 * size, 0);
-        rightLeg.castShadow = true;
-        this.mesh.add(rightLeg);
         // --- End of model creation ---
 
         // Set initial properties
@@ -160,6 +323,18 @@ export class Vessel {
         this.stats.currentMana = this.stats.maxMana;
 
         console.log(`${this.type} leveled up to ${this.level}!`, this.stats);
+    }
+
+    /**
+     * Applies damage to this vessel, reduced by armor.
+     */
+    takeDamage(amount) {
+        const effectiveDamage = amount * (100 / (100 + this.stats.armor));
+        this.stats.currentHealth -= effectiveDamage;
+        if (this.stats.currentHealth <= 0) {
+            this.stats.currentHealth = 0;
+            // TODO: death/respawn logic
+        }
     }
 
     /**

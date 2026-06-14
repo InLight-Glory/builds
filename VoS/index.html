@@ -94,6 +94,18 @@
             color: white;
             cursor: pointer;
         }
+        /* Minimap */
+        #minimap-canvas {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            width: 200px;
+            height: 200px;
+            border: 2px solid rgba(255,255,255,0.4);
+            border-radius: 4px;
+            background-color: rgba(0,0,0,0.6);
+            z-index: 500;
+        }
     </style>
     <style>
         /* Character Selection Screen */
@@ -230,6 +242,9 @@
             <span id="stat-armor">0</span>
         </div>
     </div>
+
+    <!-- Minimap -->
+    <canvas id="minimap-canvas" width="200" height="200" style="display:none;"></canvas>
 
     <!-- Import Three.js library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>

@@ -8,6 +8,7 @@ export class Projectile {
         this.distanceTraveled = 0;
         this.age = 0;
         this.overrideRadius = null;
+        this.team = null; // Set by turrets: 'blue' or 'red'
 
         // Tuning: increases hit reliability in isometric/top-down view without enlarging target hitboxes.
         // This is added to the projectile's own radius during collision checks.

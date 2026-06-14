@@ -1,11 +1,15 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene load_steps=12 format=3]
 
-[ext_resource type="Script" path="res://scripts/galaxy/GalaxyManager.cs" id="1"]
+[ext_resource type="Script" path="res://scripts/galaxy/GalaxyManager.gd" id="1"]
 [ext_resource type="PackedScene" path="res://scenes/player/Player.tscn" id="2"]
 [ext_resource type="PackedScene" path="res://scenes/planet/Planet.tscn" id="3"]
 [ext_resource type="PackedScene" path="res://scenes/ui/HUD.tscn" id="4"]
-[ext_resource type="Script" path="res://scripts/events/TimeEventManager.cs" id="5"]
-[ext_resource type="Script" path="res://scripts/galaxy/SectorManager.cs" id="6"]
+[ext_resource type="Script" path="res://scripts/events/TimeEventManager.gd" id="5"]
+[ext_resource type="Script" path="res://scripts/galaxy/SectorManager.gd" id="6"]
+[ext_resource type="PackedScene" path="res://scenes/ui/MapOverlay.tscn" id="7"]
+[ext_resource type="PackedScene" path="res://scenes/ui/DeveloperOverlay.tscn" id="8"]
+[ext_resource type="PackedScene" path="res://scenes/ui/PlanetSelectionOverlay.tscn" id="9"]
+[ext_resource type="PackedScene" path="res://scenes/ui/ResourceStorageOverlay.tscn" id="10"]
 
 [sub_resource type="Environment" id="Environment_1"]
 background_mode = 2
@@ -22,6 +26,8 @@ environment = SubResource("Environment_1")
 rotation_degrees = Vector3(-55, 35, 0)
 light_energy = 1.2
 
+[node name="GeneratedPlanets" type="Node3D" parent="."]
+
 [node name="Player" parent="." instance=ExtResource("2")]
 
 [node name="PlanetA" parent="." instance=ExtResource("3")]
@@ -32,8 +38,16 @@ light_energy = 1.2
 
 [node name="HUD" parent="." instance=ExtResource("4")]
 
+[node name="ResourceStorageOverlay" parent="." instance=ExtResource("10")]
+
 [node name="TimeEventManager" type="Node" parent="."]
 script = ExtResource("5")
 
 [node name="SectorManager" type="Node" parent="."]
 script = ExtResource("6")
+
+[node name="MapOverlay" parent="." instance=ExtResource("7")]
+
+[node name="DeveloperOverlay" parent="." instance=ExtResource("8")]
+
+[node name="PlanetSelectionOverlay" parent="." instance=ExtResource("9")]

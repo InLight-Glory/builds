@@ -1,0 +1,270 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/ResourceStorageOverlayController.gd" id="1"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
+bg_color = Color(0.06, 0.08, 0.12, 0.9)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+content_margin_left = 12.0
+content_margin_top = 12.0
+content_margin_right = 12.0
+content_margin_bottom = 12.0
+
+[node name="ResourceStorageOverlay" type="CanvasLayer"]
+script = ExtResource("1")
+
+[node name="Root" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Panel" type="PanelContainer" parent="Root"]
+visible = false
+offset_left = 120.0
+offset_top = 96.0
+offset_right = 1160.0
+offset_bottom = 676.0
+mouse_filter = 1
+theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
+
+[node name="Margin" type="MarginContainer" parent="Root/Panel"]
+layout_mode = 2
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 8
+
+[node name="Body" type="VBoxContainer" parent="Root/Panel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Title" type="Label" parent="Root/Panel/Margin/Body"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "Resource Storage [I]"
+
+[node name="Hint" type="Label" parent="Root/Panel/Margin/Body"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 13
+text = "Store and retrieve resources between suit inventory and base storage."
+
+[node name="Header" type="HBoxContainer" parent="Root/Panel/Margin/Body"]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="ResourceHeader" type="Label" parent="Root/Panel/Margin/Body/Header"]
+custom_minimum_size = Vector2(110, 0)
+layout_mode = 2
+text = "Resource"
+
+[node name="PlayerHeader" type="Label" parent="Root/Panel/Margin/Body/Header"]
+custom_minimum_size = Vector2(140, 0)
+layout_mode = 2
+text = "Player"
+
+[node name="StorageHeader" type="Label" parent="Root/Panel/Margin/Body/Header"]
+custom_minimum_size = Vector2(170, 0)
+layout_mode = 2
+text = "Storage"
+
+[node name="Rows" type="VBoxContainer" parent="Root/Panel/Margin/Body"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="WaterRow" type="HBoxContainer" parent="Root/Panel/Margin/Body/Rows"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="ResourceLabel" type="Label" parent="Root/Panel/Margin/Body/Rows/WaterRow"]
+custom_minimum_size = Vector2(110, 0)
+layout_mode = 2
+text = "Water"
+
+[node name="PlayerLabel" type="Label" parent="Root/Panel/Margin/Body/Rows/WaterRow"]
+custom_minimum_size = Vector2(140, 0)
+layout_mode = 2
+text = "Player: 0"
+
+[node name="StorageLabel" type="Label" parent="Root/Panel/Margin/Body/Rows/WaterRow"]
+custom_minimum_size = Vector2(170, 0)
+layout_mode = 2
+text = "Storage: 0 / 0"
+
+[node name="Store10Button" type="Button" parent="Root/Panel/Margin/Body/Rows/WaterRow"]
+layout_mode = 2
+text = "+10"
+
+[node name="Take10Button" type="Button" parent="Root/Panel/Margin/Body/Rows/WaterRow"]
+layout_mode = 2
+text = "-10"
+
+[node name="StoreAllButton" type="Button" parent="Root/Panel/Margin/Body/Rows/WaterRow"]
+layout_mode = 2
+text = "Store All"
+
+[node name="TakeAllButton" type="Button" parent="Root/Panel/Margin/Body/Rows/WaterRow"]
+layout_mode = 2
+text = "Take All"
+
+[node name="OilRow" type="HBoxContainer" parent="Root/Panel/Margin/Body/Rows"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="ResourceLabel" type="Label" parent="Root/Panel/Margin/Body/Rows/OilRow"]
+custom_minimum_size = Vector2(110, 0)
+layout_mode = 2
+text = "Oil"
+
+[node name="PlayerLabel" type="Label" parent="Root/Panel/Margin/Body/Rows/OilRow"]
+custom_minimum_size = Vector2(140, 0)
+layout_mode = 2
+text = "Player: 0"
+
+[node name="StorageLabel" type="Label" parent="Root/Panel/Margin/Body/Rows/OilRow"]
+custom_minimum_size = Vector2(170, 0)
+layout_mode = 2
+text = "Storage: 0 / 0"
+
+[node name="Store10Button" type="Button" parent="Root/Panel/Margin/Body/Rows/OilRow"]
+layout_mode = 2
+text = "+10"
+
+[node name="Take10Button" type="Button" parent="Root/Panel/Margin/Body/Rows/OilRow"]
+layout_mode = 2
+text = "-10"
+
+[node name="StoreAllButton" type="Button" parent="Root/Panel/Margin/Body/Rows/OilRow"]
+layout_mode = 2
+text = "Store All"
+
+[node name="TakeAllButton" type="Button" parent="Root/Panel/Margin/Body/Rows/OilRow"]
+layout_mode = 2
+text = "Take All"
+
+[node name="AirRow" type="HBoxContainer" parent="Root/Panel/Margin/Body/Rows"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="ResourceLabel" type="Label" parent="Root/Panel/Margin/Body/Rows/AirRow"]
+custom_minimum_size = Vector2(110, 0)
+layout_mode = 2
+text = "Air"
+
+[node name="PlayerLabel" type="Label" parent="Root/Panel/Margin/Body/Rows/AirRow"]
+custom_minimum_size = Vector2(140, 0)
+layout_mode = 2
+text = "Player: 0"
+
+[node name="StorageLabel" type="Label" parent="Root/Panel/Margin/Body/Rows/AirRow"]
+custom_minimum_size = Vector2(170, 0)
+layout_mode = 2
+text = "Storage: 0 / 0"
+
+[node name="Store10Button" type="Button" parent="Root/Panel/Margin/Body/Rows/AirRow"]
+layout_mode = 2
+text = "+10"
+
+[node name="Take10Button" type="Button" parent="Root/Panel/Margin/Body/Rows/AirRow"]
+layout_mode = 2
+text = "-10"
+
+[node name="StoreAllButton" type="Button" parent="Root/Panel/Margin/Body/Rows/AirRow"]
+layout_mode = 2
+text = "Store All"
+
+[node name="TakeAllButton" type="Button" parent="Root/Panel/Margin/Body/Rows/AirRow"]
+layout_mode = 2
+text = "Take All"
+
+[node name="MetalsRow" type="HBoxContainer" parent="Root/Panel/Margin/Body/Rows"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="ResourceLabel" type="Label" parent="Root/Panel/Margin/Body/Rows/MetalsRow"]
+custom_minimum_size = Vector2(110, 0)
+layout_mode = 2
+text = "Metals"
+
+[node name="PlayerLabel" type="Label" parent="Root/Panel/Margin/Body/Rows/MetalsRow"]
+custom_minimum_size = Vector2(140, 0)
+layout_mode = 2
+text = "Player: 0"
+
+[node name="StorageLabel" type="Label" parent="Root/Panel/Margin/Body/Rows/MetalsRow"]
+custom_minimum_size = Vector2(170, 0)
+layout_mode = 2
+text = "Storage: 0 / 0"
+
+[node name="Store10Button" type="Button" parent="Root/Panel/Margin/Body/Rows/MetalsRow"]
+layout_mode = 2
+text = "+10"
+
+[node name="Take10Button" type="Button" parent="Root/Panel/Margin/Body/Rows/MetalsRow"]
+layout_mode = 2
+text = "-10"
+
+[node name="StoreAllButton" type="Button" parent="Root/Panel/Margin/Body/Rows/MetalsRow"]
+layout_mode = 2
+text = "Store All"
+
+[node name="TakeAllButton" type="Button" parent="Root/Panel/Margin/Body/Rows/MetalsRow"]
+layout_mode = 2
+text = "Take All"
+
+[node name="MineralsRow" type="HBoxContainer" parent="Root/Panel/Margin/Body/Rows"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="ResourceLabel" type="Label" parent="Root/Panel/Margin/Body/Rows/MineralsRow"]
+custom_minimum_size = Vector2(110, 0)
+layout_mode = 2
+text = "Minerals"
+
+[node name="PlayerLabel" type="Label" parent="Root/Panel/Margin/Body/Rows/MineralsRow"]
+custom_minimum_size = Vector2(140, 0)
+layout_mode = 2
+text = "Player: 0"
+
+[node name="StorageLabel" type="Label" parent="Root/Panel/Margin/Body/Rows/MineralsRow"]
+custom_minimum_size = Vector2(170, 0)
+layout_mode = 2
+text = "Storage: 0 / 0"
+
+[node name="Store10Button" type="Button" parent="Root/Panel/Margin/Body/Rows/MineralsRow"]
+layout_mode = 2
+text = "+10"
+
+[node name="Take10Button" type="Button" parent="Root/Panel/Margin/Body/Rows/MineralsRow"]
+layout_mode = 2
+text = "-10"
+
+[node name="StoreAllButton" type="Button" parent="Root/Panel/Margin/Body/Rows/MineralsRow"]
+layout_mode = 2
+text = "Store All"
+
+[node name="TakeAllButton" type="Button" parent="Root/Panel/Margin/Body/Rows/MineralsRow"]
+layout_mode = 2
+text = "Take All"
+
+[node name="Actions" type="HBoxContainer" parent="Root/Panel/Margin/Body"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="StoreAllResourcesButton" type="Button" parent="Root/Panel/Margin/Body/Actions"]
+layout_mode = 2
+text = "Store All Resources"
+
+[node name="TakeAllResourcesButton" type="Button" parent="Root/Panel/Margin/Body/Actions"]
+layout_mode = 2
+text = "Take All Resources"
+
+[node name="CloseButton" type="Button" parent="Root/Panel/Margin/Body/Actions"]
+layout_mode = 2
+text = "Close"

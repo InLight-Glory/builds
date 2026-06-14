@@ -1,0 +1,17 @@
+{
+  "galaxy_seed": 120426,
+  "virtual_planet_target": 1000000,
+  "sector_size": 1012.0,
+  "planets_per_sector": 20,
+  "max_loaded_planet_nodes": 240,
+  "max_cached_sectors": 180,
+  "neighbor_planet_distance": 780.0,
+  "neighbor_visibility_hops": 2,
+  "first_person_arc_degrees": 120.0,
+  "starter_home_size": 180.0,
+  "starter_neighbor_size": 62.0,
+  "starter_neighbor_arc_degrees": 120.0,
+  "visibility_neighbor_padding": 48.0,
+  "view_distance": 2000.0,
+  "minimum_planet_spacing": 500.0
+}

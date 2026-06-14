@@ -1,6 +1,17 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=3 format=3]
 
-[ext_resource type="Script" path="res://scripts/ui/HUDController.cs" id="1"]
+[ext_resource type="Script" path="res://scripts/ui/HUDController.gd" id="1"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_info_panel"]
+bg_color = Color(0.06, 0.06, 0.1, 0.75)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+content_margin_left = 14.0
+content_margin_top = 10.0
+content_margin_right = 14.0
+content_margin_bottom = 10.0
 
 [node name="HUD" type="CanvasLayer"]
 script = ExtResource("1")
@@ -26,6 +37,12 @@ offset_top = 42.0
 theme_override_font_sizes/font_size = 16
 text = "Air 0 | Oil 0 | Water 0"
 
+[node name="EventLabel" type="Label" parent="Root"]
+offset_left = 16.0
+offset_top = 68.0
+theme_override_font_sizes/font_size = 14
+text = "Time Event: none"
+
 [node name="ReticleV" type="ColorRect" parent="Root"]
 anchor_left = 0.5
 anchor_top = 0.5
@@ -49,3 +66,51 @@ offset_right = 10.0
 offset_bottom = 1.0
 color = Color(1, 1, 1, 0.85)
 mouse_filter = 2
+
+[node name="ReticleInfoPanel" type="PanelContainer" parent="Root"]
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -120.0
+offset_top = 28.0
+offset_right = 120.0
+offset_bottom = 120.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_info_panel")
+
+[node name="InfoVBox" type="VBoxContainer" parent="Root/ReticleInfoPanel"]
+layout_mode = 2
+
+[node name="PlanetIdLabel" type="Label" parent="Root/ReticleInfoPanel/InfoVBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+theme_override_colors/font_color = Color(0.85, 0.95, 1, 1)
+text = ""
+horizontal_alignment = 1
+
+[node name="BiomeLabel" type="Label" parent="Root/ReticleInfoPanel/InfoVBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 13
+theme_override_colors/font_color = Color(0.65, 0.75, 0.8, 1)
+text = ""
+horizontal_alignment = 1
+
+[node name="DetailsLabel" type="Label" parent="Root/ReticleInfoPanel/InfoVBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 13
+theme_override_colors/font_color = Color(0.65, 0.75, 0.8, 1)
+text = ""
+horizontal_alignment = 1
+
+[node name="DistanceLabel" type="Label" parent="Root/ReticleInfoPanel/InfoVBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 13
+theme_override_colors/font_color = Color(0.55, 0.65, 0.7, 1)
+text = ""
+horizontal_alignment = 1

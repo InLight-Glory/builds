@@ -11,33 +11,37 @@ export class MeleeAttack extends Ability {
 
         if (!this.canUse(clock)) return;
 
-        const damage = this.vessel.stats.attackDamage * 1.2; // Slightly higher base damage
+        const damage = this.vessel.stats.attackDamage * 1.2;
 
-        const startPosition = this.vessel.mesh.position.clone().setY(2);
-
-        const direction = new THREE.Vector3().subVectors(mouseWorldPosition, startPosition);
+        // Calculate direction toward mouse from player position
+        const playerPos = this.vessel.mesh.position.clone();
+        const direction = new THREE.Vector3().subVectors(mouseWorldPosition, playerPos);
         direction.y = 0;
         if (direction.lengthSq() === 0) return;
         direction.normalize();
 
+        // Offset start position 2 units forward so slash appears in front of player
+        const startPosition = playerPos.clone().setY(2).add(direction.clone().multiplyScalar(2.0));
+
         // Melee is a static slash (speed 0) that lasts 0.5s
-        // Projectile signature: scene, start, dir, damage, speed, range, lifetime
         const projectile = new Projectile(scene, startPosition, direction, damage, 0, 0, 0.5);
         projectile.overrideRadius = 2.5;
 
-        // Visuals: Create a 1/4 circle slash effect
+        // Visuals: Create a 1/4 circle slash arc, laid flat on the ground
         projectile.mesh.geometry.dispose();
-        // RingGeometry(innerRadius, outerRadius, thetaSegments, phiSegments, thetaStart, thetaLength)
-        // Arc centered on +Y (Forward). Width PI/2 (90 deg). Start at PI/4 (45 deg) to end at 3PI/4 (135 deg).
+        // RingGeometry creates arc in XY plane. thetaStart=PI/4, thetaLength=PI/2 → centered on +Y axis.
+        // After rotateX(-PI/2), +Y becomes +Z, so arc faces local +Z.
         const slashGeo = new THREE.RingGeometry(2.0, 2.5, 16, 1, Math.PI / 4, Math.PI / 2);
-        slashGeo.rotateX(-Math.PI / 2); // Lay flat on ground
+        slashGeo.rotateX(-Math.PI / 2); // Lay flat on XZ ground plane
         projectile.mesh.geometry = slashGeo;
 
-        projectile.mesh.material.color.setHex(0xffffff); // White slash
+        projectile.mesh.material.color.setHex(0xffffff);
         projectile.mesh.material.side = THREE.DoubleSide;
 
-        // Align the mesh so its local +Z faces the travel direction
-        projectile.mesh.lookAt(startPosition.clone().add(direction));
+        // Orient the slash using explicit Y rotation based on world direction.
+        // atan2(x, z) gives the angle from +Z toward +X, matching Three.js Y-rotation convention.
+        projectile.mesh.rotation.set(0, 0, 0); // Clear any inherited rotation
+        projectile.mesh.rotation.y = Math.atan2(direction.x, direction.z);
 
         this.onUse(clock);
 

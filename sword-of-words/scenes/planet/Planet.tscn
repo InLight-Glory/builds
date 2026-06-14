@@ -1,8 +1,8 @@
 [gd_scene load_steps=7 format=3]
 
-[ext_resource type="Script" path="res://scripts/planet/PlanetNode.cs" id="1"]
-[ext_resource type="Script" path="res://scripts/planet/PlanetGravityField.cs" id="2"]
-[ext_resource type="Script" path="res://scripts/planet/PlanetResourcePool.cs" id="3"]
+[ext_resource type="Script" path="res://scripts/planet/PlanetNode.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/planet/PlanetGravityField.gd" id="2"]
+[ext_resource type="Script" path="res://scripts/planet/PlanetResourcePool.gd" id="3"]
 
 [sub_resource type="SphereMesh" id="SphereMesh_1"]
 radius = 1.0
